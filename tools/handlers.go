@@ -38,7 +38,7 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hy
 				path += root.Data.Link + " | "
 			}
 
-			link.Attributes["Already processed"] = strings.TrimPrefix(path, " | ")
+			link.Attributes["Already processed"] = strings.TrimSuffix(path, " | ")
 		}
 	}
 
