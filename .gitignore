@@ -1,0 +1,16 @@
+# Ignore all logfiles and tempfiles.
+log
+tmp
+
+/public/janus-webrtc-frontend/node_modules
+
+# IDE config files
+*.idea
+.idea
+.vscode
+.DS_Store
+.fleet
+
+vendor
+
+.env
