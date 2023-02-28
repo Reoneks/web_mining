@@ -13,8 +13,14 @@ type LinkHierarchy struct {
 }
 
 type SiteStruct struct {
+	ID                  string        `json:"id"`
 	Url                 string        `json:"url"`
 	BaseURL             string        `json:"base_url"`
+	Punycode            string        `json:"punycode"`
+	DNSSec              bool          `json:"dns_sec"`
+	NameServers         []string      `json:"name_servers"`
+	Status              []string      `json:"status"`
+	WhoisServer         string        `json:"whois_server"`
 	Images              int64         `json:"images"`
 	VideoLinks          int64         `json:"video_links"`
 	AudioLinks          int64         `json:"audio_links"`
@@ -26,6 +32,9 @@ type SiteStruct struct {
 	Paragraphs          int64         `json:"paragraphs"`
 	Errors              int64         `json:"errors"`
 	StatusCodesCounter  map[int]int64 `json:"status_codes"`
+	CreatedDate         string        `json:"created_date"`
+	UpdatedDate         string        `json:"updated_date"`
+	ExpirationDate      string        `json:"expiration_date"`
 
 	Hierarchy LinkHierarchy `json:"hierarchy"`
 }

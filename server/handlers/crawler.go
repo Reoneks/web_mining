@@ -10,6 +10,8 @@ import (
 	"test/tools"
 
 	"github.com/labstack/echo/v4"
+	"github.com/likexian/whois"
+	whoisparser "github.com/likexian/whois-parser"
 	"github.com/rs/zerolog/log"
 )
 
@@ -24,6 +26,18 @@ func (h *Handler) GetSiteStruct(ctx echo.Context) error {
 	if err != nil {
 		log.Error().Str("function", "GetSiteStruct").Err(err).Msg(ErrParseUrl.Error())
 		return ctx.JSON(http.StatusBadRequest, newHTTPError(ErrParseUrl))
+	}
+
+	whoisRaw, err := whois.Whois(strings.TrimPrefix(u.Host, "www."))
+	if err != nil {
+		log.Error().Str("function", "GetSiteStruct").Err(err).Msg(ErrGetSiteStruct.Error())
+		return ctx.JSON(http.StatusInternalServerError, newHTTPError(ErrGetSiteStruct))
+	}
+
+	whoisParsed, err := whoisparser.Parse(whoisRaw)
+	if err != nil {
+		log.Error().Str("function", "GetSiteStruct").Err(err).Msg(ErrGetSiteStruct.Error())
+		return ctx.JSON(http.StatusInternalServerError, newHTTPError(ErrGetSiteStruct))
 	}
 
 	headers := make(map[string]string)
@@ -43,6 +57,15 @@ func (h *Handler) GetSiteStruct(ctx echo.Context) error {
 		BaseURL:             fmt.Sprintf("%s://%s", u.Scheme, u.Host),
 		ProcessedHyperlinks: 1,
 		StatusCodesCounter:  make(map[int]int64),
+		CreatedDate:         whoisParsed.Domain.CreatedDate,
+		DNSSec:              whoisParsed.Domain.DNSSec,
+		ExpirationDate:      whoisParsed.Domain.ExpirationDate,
+		ID:                  whoisParsed.Domain.ID,
+		NameServers:         whoisParsed.Domain.NameServers,
+		Punycode:            whoisParsed.Domain.Punycode,
+		Status:              whoisParsed.Domain.Status,
+		UpdatedDate:         whoisParsed.Domain.UpdatedDate,
+		WhoisServer:         whoisParsed.Domain.WhoisServer,
 	}
 
 	resp.Hierarchy = tools.HierarchyProcess(&resp, &hierarchy, make(map[string]*structs.LinkHierarchy))
