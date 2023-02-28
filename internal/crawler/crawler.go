@@ -18,7 +18,8 @@ import (
 )
 
 type Crawler struct {
-	wisited []string
+	postgres Postgres
+	wisited  []string
 }
 
 func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]string) (hierarchy structs.Hierarchy, err error) {
@@ -183,6 +184,6 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 	return data
 }
 
-func NewCrawler(firstPage string, exclude []string) *Crawler {
+func newCrawler(firstPage string, exclude []string, postgres Postgres) *Crawler {
 	return &Crawler{wisited: append(exclude, firstPage)}
 }

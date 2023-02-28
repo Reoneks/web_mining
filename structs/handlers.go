@@ -7,13 +7,12 @@ type SiteParseReq struct {
 }
 
 type LinkHierarchy struct {
-	Link       string            `json:"name"`
-	Attributes map[string]string `json:"attributes"`
-	Children   []LinkHierarchy   `json:"children"`
+	Link     string          `json:"name"`
+	Children []LinkHierarchy `json:"children"`
 }
 
 type SiteStruct struct {
-	ID                  string        `json:"id"`
+	DomainID            string        `json:"domain_id"`
 	Url                 string        `json:"url"`
 	BaseURL             string        `json:"base_url"`
 	Punycode            string        `json:"punycode"`
@@ -36,5 +35,6 @@ type SiteStruct struct {
 	UpdatedDate         string        `json:"updated_date"`
 	ExpirationDate      string        `json:"expiration_date"`
 
-	Hierarchy LinkHierarchy `json:"hierarchy"`
+	LinkHierarchy LinkHierarchy `json:"hierarchy"`
+	Hierarchy     Hierarchy     `json:"-"`
 }
