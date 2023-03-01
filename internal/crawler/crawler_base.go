@@ -16,7 +16,8 @@ import (
 
 type Postgres interface {
 	SaveSiteStruct(siteStruct structs.SiteStruct) error
-	GetFullData(link string) (structs.SiteStruct, error)
+	GetFullData(link string, onlyThisPage bool) (structs.SiteStruct, error)
+	GetCrawlerData(link string) (structs.CrawlerData, error)
 }
 
 type WhoIS interface {
@@ -34,7 +35,14 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 		return structs.SiteStruct{}, fmt.Errorf("CrawlerBase.PageWalker url parse error: %w", err)
 	}
 
-	siteStruct, err := cb.postgres.GetFullData(fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host))
+	siteStruct, err := cb.postgres.GetFullData(fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host), onlyThisPage)
+	if onlyThisPage && err == nil {
+		data, err := cb.postgres.GetCrawlerData(page)
+		if err == nil {
+			siteStruct.Hierarchy = &structs.Hierarchy{CrawlerData: data}
+		}
+	}
+
 	if err != nil || reflect.DeepEqual(siteStruct, structs.SiteStruct{}) || forceCollect {
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Str("function", "PageWalker").Err(err).Msg("CrawlerBase.PageWalker postgres GetFullData error")

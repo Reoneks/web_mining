@@ -29,10 +29,15 @@ func (p *Postgres) SaveSiteStruct(siteStruct structs.SiteStruct) error {
 	return nil
 }
 
-func (p *Postgres) GetFullData(link string) (structs.SiteStruct, error) {
+func (p *Postgres) GetFullData(link string, onlyThisPage bool) (structs.SiteStruct, error) {
 	var result structs.SiteStruct
 
-	err := p.db.Model(&result).Preload("Hierarchy", preloadHierarchy).Where("base_url = ?", link).First(&result).Error
+	baseReq := p.db.Model(&result)
+	if !onlyThisPage {
+		baseReq = baseReq.Preload("Hierarchy", preloadHierarchy)
+	}
+
+	err := baseReq.Where("base_url = ?", link).First(&result).Error
 	if err != nil {
 		return structs.SiteStruct{}, fmt.Errorf("Error getting site structure: %w", err)
 	}
@@ -41,7 +46,14 @@ func (p *Postgres) GetFullData(link string) (structs.SiteStruct, error) {
 }
 
 func (p *Postgres) GetCrawlerData(link string) (structs.CrawlerData, error) {
-	return structs.CrawlerData{}, nil
+	var result structs.CrawlerData
+
+	err := p.db.Model(&structs.Hierarchy{}).Where("link = ?", link).First(&result).Error
+	if err != nil {
+		return structs.CrawlerData{}, fmt.Errorf("Error getting crawler data: %w", err)
+	}
+
+	return result, nil
 }
 
 func NewPostgres(cfg *config.Config) (postgres *Postgres, err error) {

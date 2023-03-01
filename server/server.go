@@ -38,6 +38,7 @@ func (s *httpServer) Start(ctx context.Context) error {
 	s.router.Use(middleware.LoggerMiddleware(), middleware.CorsMiddleware(), middleware.RecoverMiddleware())
 
 	s.router.GET("/parse_site", s.handlers.GetSiteStruct)
+	s.router.GET("/details", s.handlers.GetDetails)
 
 	go func() {
 		if err := s.router.Start(s.cfg.AppAddr); err != nil && err != http.ErrServerClosed {

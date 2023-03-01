@@ -29,3 +29,13 @@ func (h *Handler) GetSiteStruct(ctx echo.Context) error {
 
 	return ctx.JSON(http.StatusOK, resp)
 }
+
+func (h *Handler) GetDetails(ctx echo.Context) error {
+	resp, err := h.postgres.GetCrawlerData(ctx.QueryParam("link"))
+	if err != nil {
+		log.Error().Str("function", "GetDetails").Err(err).Msg(ErrGetDetails.Error())
+		return ctx.JSON(http.StatusInternalServerError, newHTTPError(ErrGetDetails))
+	}
+
+	return ctx.JSON(http.StatusOK, resp)
+}
