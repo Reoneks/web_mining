@@ -3,8 +3,6 @@ package tools
 import (
 	"strings"
 	"test/structs"
-
-	"golang.org/x/exp/slices"
 )
 
 func PrepareCrawlerText(text string) string {
@@ -33,7 +31,7 @@ func CheckWisited(wisited []string, link string) bool {
 	return false
 }
 
-func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hyperlinks map[string]*structs.LinkHierarchy) (res structs.LinkHierarchy) {
+func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy) (res structs.LinkHierarchy) {
 	if resp == nil || hierarchy == nil {
 		return structs.LinkHierarchy{}
 	}
@@ -55,18 +53,15 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hy
 
 	res.Link = hierarchy.Link
 	for _, link := range hierarchy.Hyperlinks {
-		linkHierarchy := structs.LinkHierarchy{Link: link}
-		hyperlinks[link] = &linkHierarchy
-		res.Children = append(res.Children, linkHierarchy)
+		if strings.Contains(link, resp.BaseURL) {
+			linkHierarchy := structs.LinkHierarchy{Link: link}
+			res.Children = append(res.Children, linkHierarchy)
+		}
 	}
 
 	for _, child := range hierarchy.Childrens {
-		processed := HierarchyProcess(resp, &child, hyperlinks)
+		processed := HierarchyProcess(resp, &child)
 		res.Children = append(res.Children, processed)
-
-		if link, ok := hyperlinks[child.Link]; ok {
-			link.Children = slices.Clone(processed.Children)
-		}
 	}
 
 	return

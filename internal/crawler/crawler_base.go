@@ -29,15 +29,15 @@ type CrawlerBase struct {
 }
 
 func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, forceCollect bool, headers map[string]string) (structs.SiteStruct, error) {
-	siteStruct, err := cb.postgres.GetFullData(page)
+	pageParsedUrl, err := url.Parse(page)
+	if err != nil {
+		return structs.SiteStruct{}, fmt.Errorf("CrawlerBase.PageWalker url parse error: %w", err)
+	}
+
+	siteStruct, err := cb.postgres.GetFullData(fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host))
 	if err != nil || reflect.DeepEqual(siteStruct, structs.SiteStruct{}) || forceCollect {
 		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Str("function", "PageWalker").Err(err).Msg("CrawlerBase.PageWalker postgres GetFullData error")
-		}
-
-		pageParsedUrl, err := url.Parse(page)
-		if err != nil {
-			return structs.SiteStruct{}, fmt.Errorf("CrawlerBase.PageWalker url parse error: %w", err)
 		}
 
 		whoisParsed, err := cb.whois.WhoIS(pageParsedUrl)
@@ -76,7 +76,7 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 	siteStruct.Url = page
 	siteStruct.ProcessedHyperlinks = 1
 	siteStruct.StatusCodesCounter = make(map[int]int64)
-	siteStruct.LinkHierarchy = tools.HierarchyProcess(&siteStruct, siteStruct.Hierarchy, make(map[string]*structs.LinkHierarchy))
+	siteStruct.LinkHierarchy = tools.HierarchyProcess(&siteStruct, siteStruct.Hierarchy)
 	return siteStruct, nil
 }
 
