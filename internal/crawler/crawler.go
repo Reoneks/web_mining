@@ -24,17 +24,17 @@ type Crawler struct {
 func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]string) (hierarchy structs.Hierarchy, err error) {
 	resp, err := resty.New().SetHeaders(headers).R().Get(page)
 	if err != nil {
-		hierarchy.Data.Link = page
-		hierarchy.Data.StatusCode = resp.StatusCode()
-		hierarchy.Data.Error = err.Error()
+		hierarchy.Link = page
+		hierarchy.StatusCode = resp.StatusCode()
+		hierarchy.Error = err.Error()
 		return
 	}
 
 	u, err := url.Parse(page)
 	if err != nil {
-		hierarchy.Data.Link = page
-		hierarchy.Data.StatusCode = resp.StatusCode()
-		hierarchy.Data.Error = err.Error()
+		hierarchy.Link = page
+		hierarchy.StatusCode = resp.StatusCode()
+		hierarchy.Error = err.Error()
 		return
 	}
 
@@ -46,7 +46,7 @@ func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]
 	data.Link = page
 	data.StatusCode = resp.StatusCode()
 
-	hierarchy.Data = data
+	hierarchy.CrawlerData = data
 	if !onlyThisPage {
 		process := make([]string, 0, len(data.Hyperlinks))
 		for _, link := range data.Hyperlinks {
@@ -62,7 +62,7 @@ func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]
 				log.Error().Str("function", "PageWalker").Err(err).Msg("PageWalker error")
 			}
 
-			child.Parent = &hierarchy
+			child.ParentLink = hierarchy.Link
 			hierarchy.Childrens = append(hierarchy.Childrens, child)
 		}
 	}
@@ -183,6 +183,6 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 	return data
 }
 
-func NewCrawler(firstPage string, exclude []string) *Crawler {
+func newCrawler(firstPage string, exclude []string) *Crawler {
 	return &Crawler{wisited: append(exclude, firstPage)}
 }

@@ -18,7 +18,8 @@ type AppConfig struct {
 }
 
 type PostgresConfig struct {
-	DSN      string `required:"true" default:"host=localhost user=postgres password=postgres dbname=backend-db port=5432 sslmode=disable" envconfig:"DB_DSN"`
+	DSN          string `envconfig:"DB_DSN" required:"true"`
+	MigrationURL string `envconfig:"DB_MIGRATION_URL" default:"file://migrations"`
 }
 
 func (cfg Config) String() string {
