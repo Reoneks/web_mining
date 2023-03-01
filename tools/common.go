@@ -34,6 +34,10 @@ func CheckWisited(wisited []string, link string) bool {
 }
 
 func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hyperlinks map[string]*structs.LinkHierarchy) (res structs.LinkHierarchy) {
+	if resp == nil || hierarchy == nil {
+		return structs.LinkHierarchy{}
+	}
+
 	resp.Images += int64(len(hierarchy.Images))
 	resp.AudioLinks += int64(len(hierarchy.Audio))
 	resp.VideoLinks += int64(len(hierarchy.Video))
