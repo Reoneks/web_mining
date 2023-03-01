@@ -15,7 +15,8 @@ func Exec() fx.Option {
 	return fx.Options(
 		fx.Provide(
 			config.Get,
-			fx.Annotate(postgres.NewPostgres, fx.As(new(crawler.Postgres))),
+			postgres.NewPostgres,
+			fx.Annotate(annotationDupl[postgres.Postgres], fx.As(new(crawler.Postgres))),
 			fx.Annotate(whois.NewWhoIS, fx.As(new(crawler.WhoIS))),
 			fx.Annotate(crawler.NewCrawlerBase, fx.As(new(handlers.Crawler))),
 			handlers.NewHandler,
@@ -25,6 +26,10 @@ func Exec() fx.Option {
 			prepareHooks,
 		),
 	)
+}
+
+func annotationDupl[T any](v *T) *T {
+	return v
 }
 
 func prepareHooks(server server.HTTPServer, postgres *postgres.Postgres, lc fx.Lifecycle) {

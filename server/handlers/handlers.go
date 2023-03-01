@@ -5,7 +5,7 @@ import (
 )
 
 type Crawler interface {
-	PageWalker(page string, exclude []string, onlyThisPage bool, headers map[string]string) (siteStruct structs.SiteStruct, err error)
+	PageWalker(page string, exclude []string, onlyThisPage, forceCollect bool, headers map[string]string) (siteStruct structs.SiteStruct, err error)
 }
 
 type Handler struct {

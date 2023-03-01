@@ -21,7 +21,7 @@ func (h *Handler) GetSiteStruct(ctx echo.Context) error {
 		headers[key] = strings.Join(values, ",")
 	}
 
-	resp, err := h.crawler.PageWalker(siteParseReq.URL, siteParseReq.Exclude, siteParseReq.OnlyThisPage, headers)
+	resp, err := h.crawler.PageWalker(siteParseReq.URL, siteParseReq.Exclude, siteParseReq.OnlyThisPage, siteParseReq.ForceCollect, headers)
 	if err != nil {
 		log.Error().Str("function", "GetSiteStruct").Err(err).Msg(ErrGetSiteStruct.Error())
 		return ctx.JSON(http.StatusInternalServerError, newHTTPError(ErrGetSiteStruct))

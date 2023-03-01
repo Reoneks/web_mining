@@ -21,11 +21,23 @@ type Postgres struct {
 }
 
 func (p *Postgres) SaveSiteStruct(siteStruct structs.SiteStruct) error {
+	err := p.db.Model(&siteStruct).Session(&gorm.Session{FullSaveAssociations: true}).Where("base_url = ?", siteStruct.BaseURL).Save(&siteStruct).Error
+	if err != nil {
+		return fmt.Errorf("Error saving site structure: %w", err)
+	}
+
 	return nil
 }
 
 func (p *Postgres) GetFullData(link string) (structs.SiteStruct, error) {
-	return structs.SiteStruct{}, nil
+	var result structs.SiteStruct
+
+	err := p.db.Model(&result).Preload("Hierarchy", preloadHierarchy).First(&result).Error
+	if err != nil {
+		return structs.SiteStruct{}, fmt.Errorf("Error getting site structure: %w", err)
+	}
+
+	return result, nil
 }
 
 func (p *Postgres) GetCrawlerData(link string) (structs.CrawlerData, error) {

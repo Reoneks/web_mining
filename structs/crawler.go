@@ -4,26 +4,70 @@ import (
 	"strings"
 	"test/settings"
 
+	"github.com/lib/pq"
 	"golang.org/x/exp/slices"
 )
 
+type LinkHierarchy struct {
+	Link     string          `json:"name"`
+	Children []LinkHierarchy `json:"children"`
+}
+
+type SiteStruct struct {
+	DomainID            string         `json:"domain_id"`
+	Url                 string         `json:"url" gorm:"-"`
+	BaseURL             string         `json:"base_url" gorm:"primary_key"`
+	Punycode            string         `json:"punycode"`
+	DNSSec              bool           `json:"dns_sec"`
+	NameServers         pq.StringArray `json:"name_servers" gorm:"type:text[]"`
+	Status              pq.StringArray `json:"status" gorm:"type:text[]"`
+	WhoisServer         string         `json:"whois_server"`
+	Images              int64          `json:"images" gorm:"-"`
+	VideoLinks          int64          `json:"video_links" gorm:"-"`
+	AudioLinks          int64          `json:"audio_links" gorm:"-"`
+	Hyperlinks          int64          `json:"hyperlinks" gorm:"-"`
+	ProcessedHyperlinks int64          `json:"processed_hyperlinks" gorm:"-"`
+	InternalLinks       int64          `json:"internal_links" gorm:"-"`
+	Symbols             int64          `json:"symbols" gorm:"-"`
+	Words               int64          `json:"words" gorm:"-"`
+	Paragraphs          int64          `json:"paragraphs" gorm:"-"`
+	Errors              int64          `json:"errors" gorm:"-"`
+	StatusCodesCounter  map[int]int64  `json:"status_codes" gorm:"-"`
+	CreatedDate         string         `json:"created_date"`
+	UpdatedDate         string         `json:"updated_date"`
+	ExpirationDate      string         `json:"expiration_date"`
+	LinkHierarchy       LinkHierarchy  `json:"hierarchy" gorm:"-"`
+
+	Hierarchy *Hierarchy        `json:"-" gorm:"foreignKey:ParentLink;references:BaseURL"`
+	Exclude   pq.StringArray    `json:"-" gorm:"type:text[]"`
+	Headers   map[string]string `json:"-" gorm:"serializer:json"`
+}
+
+func (SiteStruct) TableName() string {
+	return "sites"
+}
+
 type Hierarchy struct {
-	Data      CrawlerData `json:"data"`
-	Childrens []Hierarchy `json:"childrens"`
-	Parent    *Hierarchy  `json:"parent"`
+	CrawlerData `gorm:"embedded"`
+	Childrens   []Hierarchy `json:"childrens" gorm:"foreignKey:ParentLink;references:Link"`
+	ParentLink  string      `json:"-"`
+}
+
+func (Hierarchy) TableName() string {
+	return "link_data"
 }
 
 type CrawlerData struct {
-	Link          string              `json:"link"`
+	Link          string              `json:"link" gorm:"primary_key"`
 	StatusCode    int                 `json:"status_code"`
 	Error         string              `json:"error"`
 	Text          string              `json:"text"`
-	Images        []string            `json:"images"`
-	Audio         []string            `json:"audio"`
-	Video         []string            `json:"video"`
-	Hyperlinks    []string            `json:"hyperlinks"`
-	InternalLinks []string            `json:"internal_links"`
-	Metadata      []map[string]string `json:"metadata"`
+	Images        pq.StringArray      `json:"images" gorm:"type:text[]"`
+	Audio         pq.StringArray      `json:"audio" gorm:"type:text[]"`
+	Video         pq.StringArray      `json:"video" gorm:"type:text[]"`
+	Hyperlinks    pq.StringArray      `json:"hyperlinks" gorm:"type:text[]"`
+	InternalLinks pq.StringArray      `json:"internal_links" gorm:"type:text[]"`
+	Metadata      []map[string]string `json:"metadata" gorm:"serializer:json"`
 }
 
 func (cd *CrawlerData) Merge(isHTMLBlock bool, ToMerge ...CrawlerData) {
@@ -54,5 +98,7 @@ func (cd *CrawlerData) mergeText(text string, isHTMLBlock bool) {
 		if isHTMLBlock && !strings.HasSuffix(cd.Text, "\n") {
 			cd.Text += "\n"
 		}
+
+		cd.Text = strings.ToValidUTF8(cd.Text, "")
 	}
 }

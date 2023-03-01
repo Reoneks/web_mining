@@ -1,14 +1,17 @@
 package crawler
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"reflect"
 	"test/structs"
 	"test/tools"
 
+	"github.com/lib/pq"
 	whoisparser "github.com/likexian/whois-parser"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 )
 
 type Postgres interface {
@@ -25,10 +28,10 @@ type CrawlerBase struct {
 	whois    WhoIS
 }
 
-func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage bool, headers map[string]string) (structs.SiteStruct, error) {
+func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, forceCollect bool, headers map[string]string) (structs.SiteStruct, error) {
 	siteStruct, err := cb.postgres.GetFullData(page)
-	if err != nil || reflect.DeepEqual(siteStruct, structs.SiteStruct{}) {
-		if err != nil {
+	if err != nil || reflect.DeepEqual(siteStruct, structs.SiteStruct{}) || forceCollect {
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Error().Str("function", "PageWalker").Err(err).Msg("CrawlerBase.PageWalker postgres GetFullData error")
 		}
 
@@ -42,15 +45,15 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage bo
 			return structs.SiteStruct{}, fmt.Errorf("CrawlerBase.PageWalker whois get error: %w", err)
 		}
 
-		crawler := newCrawler(page, exclude, cb.postgres)
-		siteStruct.Hierarchy, err = crawler.PageWalker(page, onlyThisPage, headers)
+		crawler := newCrawler(page, exclude)
+		hierarchy, err := crawler.PageWalker(page, onlyThisPage, headers)
 		if err != nil {
 			return structs.SiteStruct{}, fmt.Errorf("CrawlerBase.PageWalker url parse error: %w", err)
 		}
 
+		hierarchy.ParentLink = fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host)
 		siteStruct = structs.SiteStruct{
 			DomainID:       whoisParsed.Domain.ID,
-			Url:            page,
 			BaseURL:        fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host),
 			Punycode:       whoisParsed.Domain.Punycode,
 			DNSSec:         whoisParsed.Domain.DNSSec,
@@ -60,6 +63,9 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage bo
 			CreatedDate:    whoisParsed.Domain.CreatedDate,
 			UpdatedDate:    whoisParsed.Domain.UpdatedDate,
 			ExpirationDate: whoisParsed.Domain.ExpirationDate,
+			Hierarchy:      &hierarchy,
+			Exclude:        pq.StringArray(exclude),
+			Headers:        headers,
 		}
 
 		if err := cb.postgres.SaveSiteStruct(siteStruct); err != nil {
@@ -67,9 +73,10 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage bo
 		}
 	}
 
+	siteStruct.Url = page
 	siteStruct.ProcessedHyperlinks = 1
 	siteStruct.StatusCodesCounter = make(map[int]int64)
-	siteStruct.LinkHierarchy = tools.HierarchyProcess(&siteStruct, &siteStruct.Hierarchy, make(map[string]*structs.LinkHierarchy))
+	siteStruct.LinkHierarchy = tools.HierarchyProcess(&siteStruct, siteStruct.Hierarchy, make(map[string]*structs.LinkHierarchy))
 	return siteStruct, nil
 }
 
