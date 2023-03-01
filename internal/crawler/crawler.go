@@ -18,8 +18,7 @@ import (
 )
 
 type Crawler struct {
-	wisited   []string
-	firstPage string
+	wisited []string
 }
 
 func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]string) (hierarchy structs.Hierarchy, err error) {
@@ -185,5 +184,5 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 }
 
 func newCrawler(firstPage string, exclude []string) *Crawler {
-	return &Crawler{wisited: append(exclude, firstPage), firstPage: firstPage}
+	return &Crawler{wisited: append(exclude, firstPage)}
 }
