@@ -16,7 +16,11 @@ func Exec() fx.Option {
 		fx.Provide(
 			config.Get,
 			postgres.NewPostgres,
-			fx.Annotate(annotationDupl[postgres.Postgres], fx.As(new(crawler.Postgres))),
+			fx.Annotate(
+				annotationDupl[postgres.Postgres],
+				fx.As(new(crawler.Postgres)),
+				fx.As(new(handlers.Postgres)),
+			),
 			fx.Annotate(whois.NewWhoIS, fx.As(new(crawler.WhoIS))),
 			fx.Annotate(crawler.NewCrawlerBase, fx.As(new(handlers.Crawler))),
 			handlers.NewHandler,
