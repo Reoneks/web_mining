@@ -32,7 +32,7 @@ func (p *Postgres) SaveSiteStruct(siteStruct structs.SiteStruct) error {
 func (p *Postgres) GetFullData(link string) (structs.SiteStruct, error) {
 	var result structs.SiteStruct
 
-	err := p.db.Model(&result).Preload("Hierarchy", preloadHierarchy).First(&result).Error
+	err := p.db.Model(&result).Preload("Hierarchy", preloadHierarchy).Where("base_url = ?", link).First(&result).Error
 	if err != nil {
 		return structs.SiteStruct{}, fmt.Errorf("Error getting site structure: %w", err)
 	}

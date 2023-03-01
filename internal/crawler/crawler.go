@@ -159,10 +159,25 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 				}
 			}
 		} else if node.Data == "source" {
+			var links []string
 			for _, attr := range node.Attr {
 				if attr.Key == "src" {
-					data.Video = append(data.Video, attr.Val)
+					links = append(links, attr.Val)
 					break
+				}
+			}
+
+			if node.Parent.Type == html.ElementNode {
+				if node.Parent.Data == "video" {
+					data.Video = append(data.Video, links...)
+				} else if node.Parent.Data == "audio" {
+					data.Audio = append(data.Audio, links...)
+				}
+			} else if node.Parent.Parent.Type == html.ElementNode {
+				if node.Parent.Parent.Data == "video" {
+					data.Video = append(data.Video, links...)
+				} else if node.Parent.Parent.Data == "audio" {
+					data.Audio = append(data.Audio, links...)
 				}
 			}
 		} else if node.Data == "img" {
