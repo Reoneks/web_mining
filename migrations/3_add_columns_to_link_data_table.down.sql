@@ -1,0 +1,5 @@
+ALTER TABLE link_data
+DROP COLUMN IF EXISTS "fonts";
+
+ALTER TABLE link_data
+DROP COLUMN IF EXISTS "files";

@@ -40,6 +40,9 @@ func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]
 
 	data, err := c.ParsePage(bytes.NewReader(resp.Body()), u)
 	if err != nil {
+		hierarchy.Link = page
+		hierarchy.StatusCode = resp.StatusCode()
+		hierarchy.Error = err.Error()
 		return
 	}
 
@@ -87,6 +90,8 @@ func (c *Crawler) ParsePage(page io.Reader, baseURL *url.URL) (structs.CrawlerDa
 	data.Hyperlinks = slices.Compact(data.Hyperlinks)
 	data.Images = slices.Compact(data.Images)
 	data.InternalLinks = slices.Compact(data.InternalLinks)
+	data.Files = slices.Compact(data.Files)
+	data.Fonts = slices.Compact(data.Fonts)
 
 	for i, link := range data.Hyperlinks {
 		if strings.HasPrefix(link, "//") {
@@ -99,33 +104,11 @@ func (c *Crawler) ParsePage(page io.Reader, baseURL *url.URL) (structs.CrawlerDa
 		}
 	}
 
-	for i, video := range data.Video {
-		if !strings.Contains(video, "http://") && !strings.Contains(video, "https://") {
-			url := strings.Split(baseURL.String(), "/")
-			if len(url) > 0 {
-				data.Video[i] = strings.Join(url[:len(url)-1], "/") + video
-			}
-		}
-	}
-
-	for i, audio := range data.Audio {
-		if !strings.Contains(audio, "http://") && !strings.Contains(audio, "https://") {
-			url := strings.Split(baseURL.String(), "/")
-			if len(url) > 0 {
-				data.Audio[i] = strings.Join(url[:len(url)-1], "/") + audio
-			}
-		}
-	}
-
-	for i, image := range data.Images {
-		if !strings.Contains(image, "http://") && !strings.Contains(image, "https://") {
-			url := strings.Split(baseURL.String(), "/")
-			if len(url) > 0 {
-				data.Images[i] = strings.Join(url[:len(url)-1], "/") + image
-			}
-		}
-	}
-
+	data.Images = tools.PrepareLinks(data.Images, baseURL.String())
+	data.Audio = tools.PrepareLinks(data.Audio, baseURL.String())
+	data.Video = tools.PrepareLinks(data.Video, baseURL.String())
+	data.Files = tools.PrepareLinks(data.Files, baseURL.String())
+	data.Fonts = tools.PrepareLinks(data.Fonts, baseURL.String())
 	return data, nil
 }
 
@@ -147,11 +130,47 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 
 			data.Metadata = append(data.Metadata, meta)
 		} else if node.Data == "link" || node.Data == "a" {
+		LINK_LOOP:
 			for _, attr := range node.Attr {
 				if attr.Key == "href" && !strings.Contains(attr.Val, "javascript:void(0)") {
 					if strings.HasPrefix(attr.Val, "#") {
 						data.InternalLinks = append(data.InternalLinks, attr.Val)
 					} else {
+						for _, imgFormat := range settings.ImageExtensions {
+							if strings.HasSuffix(attr.Val, imgFormat) {
+								data.Images = append(data.Images, attr.Val)
+								break LINK_LOOP
+							}
+						}
+
+						for _, fontFormat := range settings.FontsExtensions {
+							if strings.HasSuffix(attr.Val, fontFormat) {
+								data.Fonts = append(data.Fonts, attr.Val)
+								break LINK_LOOP
+							}
+						}
+
+						for _, fileFormat := range settings.FilesExtensions {
+							if strings.HasSuffix(attr.Val, fileFormat) {
+								data.Files = append(data.Files, attr.Val)
+								break LINK_LOOP
+							}
+						}
+
+						for _, videoFormat := range settings.VideoExtensions {
+							if strings.HasSuffix(attr.Val, videoFormat) {
+								data.Video = append(data.Video, attr.Val)
+								break LINK_LOOP
+							}
+						}
+
+						for _, audioFormat := range settings.AudioExtensions {
+							if strings.HasSuffix(attr.Val, audioFormat) {
+								data.Audio = append(data.Audio, attr.Val)
+								break LINK_LOOP
+							}
+						}
+
 						data.Hyperlinks = append(data.Hyperlinks, attr.Val)
 					}
 

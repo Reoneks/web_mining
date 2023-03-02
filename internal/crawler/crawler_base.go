@@ -50,13 +50,16 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 
 		whoisParsed, err := cb.whois.WhoIS(pageParsedUrl)
 		if err != nil {
-			return structs.SiteStruct{}, fmt.Errorf("CrawlerBase.PageWalker whois get error: %w", err)
+			log.Error().Str("function", "PageWalker").Err(err).Msg("CrawlerBase.PageWalker whois error")
+		} else if whoisParsed.Domain == nil {
+			whoisParsed.Domain = new(whoisparser.Domain)
+			log.Error().Str("function", "PageWalker").Msg("CrawlerBase.PageWalker whoisParsed Domain empty")
 		}
 
 		crawler := newCrawler(page, exclude)
 		hierarchy, err := crawler.PageWalker(page, onlyThisPage, headers)
 		if err != nil {
-			return structs.SiteStruct{}, fmt.Errorf("CrawlerBase.PageWalker url parse error: %w", err)
+			log.Error().Str("function", "PageWalker").Err(err).Msg("CrawlerBase.PageWalker url parse error")
 		}
 
 		hierarchy.ParentLink = fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host)
