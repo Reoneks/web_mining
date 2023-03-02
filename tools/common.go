@@ -68,3 +68,16 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy) (r
 
 	return
 }
+
+func PrepareLinks(links []string, baseURL string) []string {
+	for i, link := range links {
+		if !strings.Contains(link, "http://") && !strings.Contains(link, "https://") {
+			url := strings.Split(baseURL, "/")
+			if len(url) > 0 {
+				links[i] = strings.Join(url[:len(url)-1], "/") + link
+			}
+		}
+	}
+
+	return links
+}

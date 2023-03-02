@@ -101,33 +101,11 @@ func (c *Crawler) ParsePage(page io.Reader, baseURL *url.URL) (structs.CrawlerDa
 		}
 	}
 
-	for i, video := range data.Video {
-		if !strings.Contains(video, "http://") && !strings.Contains(video, "https://") {
-			url := strings.Split(baseURL.String(), "/")
-			if len(url) > 0 {
-				data.Video[i] = strings.Join(url[:len(url)-1], "/") + video
-			}
-		}
-	}
-
-	for i, audio := range data.Audio {
-		if !strings.Contains(audio, "http://") && !strings.Contains(audio, "https://") {
-			url := strings.Split(baseURL.String(), "/")
-			if len(url) > 0 {
-				data.Audio[i] = strings.Join(url[:len(url)-1], "/") + audio
-			}
-		}
-	}
-
-	for i, image := range data.Images {
-		if !strings.Contains(image, "http://") && !strings.Contains(image, "https://") {
-			url := strings.Split(baseURL.String(), "/")
-			if len(url) > 0 {
-				data.Images[i] = strings.Join(url[:len(url)-1], "/") + image
-			}
-		}
-	}
-
+	data.Images = tools.PrepareLinks(data.Images, baseURL.String())
+	data.Audio = tools.PrepareLinks(data.Audio, baseURL.String())
+	data.Video = tools.PrepareLinks(data.Video, baseURL.String())
+	data.Files = tools.PrepareLinks(data.Files, baseURL.String())
+	data.Fonts = tools.PrepareLinks(data.Fonts, baseURL.String())
 	return data, nil
 }
 
