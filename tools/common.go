@@ -33,7 +33,7 @@ func CheckWisited(wisited []string, link string) bool {
 	return false
 }
 
-func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy) (res structs.LinkHierarchy) {
+func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hyperlinks map[string][]structs.LinkHierarchy) (res structs.LinkHierarchy) {
 	if resp == nil || hierarchy == nil {
 		return structs.LinkHierarchy{}
 	}
@@ -56,19 +56,49 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy) (r
 	}
 
 	res.Link = hierarchy.Link
+	res.Attributes = make(map[string]string)
+
+	childrenLinks := make([]string, 0, len(hierarchy.Childrens))
+	for _, child := range hierarchy.Childrens {
+		childrenLinks = append(childrenLinks, child.Link)
+		processed := HierarchyProcess(resp, &child, hyperlinks)
+		res.Children = append(res.Children, processed)
+
+		if links, ok := hyperlinks[child.Link]; ok {
+			var path string
+			for root := &child; root != nil; root = root.Parent {
+				path = root.Link + " | " + path
+			}
+
+			path = strings.TrimSuffix(path, " | ")
+			for _, link := range links {
+				link.Attributes["Already processed"] = path
+			}
+		}
+	}
+
 	for _, link := range hierarchy.Hyperlinks {
-		if strings.Contains(link, resp.BaseURL) {
-			linkHierarchy := structs.LinkHierarchy{Link: link}
+		if strings.Contains(link, resp.BaseURL) && !slices.Contains(childrenLinks, link) {
+			linkHierarchy := structs.LinkHierarchy{Link: link, Attributes: make(map[string]string)}
+
+			if links, ok := hyperlinks[link]; ok && len(links) > 0 && len(links[0].Attributes) > 0 {
+				linkHierarchy.Attributes["Already processed"] = links[0].Attributes["Already processed"]
+			} else {
+				hyperlinks[link] = append(hyperlinks[link], linkHierarchy)
+			}
+
 			res.Children = append(res.Children, linkHierarchy)
 		}
 	}
 
-	for _, child := range hierarchy.Childrens {
-		processed := HierarchyProcess(resp, &child)
-		res.Children = append(res.Children, processed)
-	}
-
 	return
+}
+
+func SetParents(hierarchy *structs.Hierarchy) {
+	for i := range hierarchy.Childrens {
+		hierarchy.Childrens[i].Parent = hierarchy
+		SetParents(&hierarchy.Childrens[i])
+	}
 }
 
 func UniqueHyperlinks(hierarchy *structs.Hierarchy) int64 {

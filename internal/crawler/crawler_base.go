@@ -87,12 +87,14 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 		if err := cb.postgres.SaveSiteStruct(siteStruct); err != nil {
 			log.Error().Str("function", "PageWalker").Err(err).Msg("CrawlerBase.PageWalker postgres SaveSiteStruct error")
 		}
+	} else {
+		tools.SetParents(siteStruct.Hierarchy)
 	}
 
 	siteStruct.Url = page
 	siteStruct.ProcessedHyperlinks = 1
 	siteStruct.StatusCodesCounter = make(map[int]int64)
-	siteStruct.LinkHierarchy = tools.HierarchyProcess(&siteStruct, siteStruct.Hierarchy)
+	siteStruct.LinkHierarchy = tools.HierarchyProcess(&siteStruct, siteStruct.Hierarchy, make(map[string][]structs.LinkHierarchy))
 	siteStruct.UniqueHyperlinks = tools.UniqueHyperlinks(siteStruct.Hierarchy)
 	return siteStruct, nil
 }

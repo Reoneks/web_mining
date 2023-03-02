@@ -66,6 +66,7 @@ func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]
 			}
 
 			child.ParentLink = hierarchy.Link
+			child.Parent = &hierarchy
 			hierarchy.Childrens = append(hierarchy.Childrens, child)
 		}
 	}

@@ -10,8 +10,9 @@ import (
 )
 
 type LinkHierarchy struct {
-	Link     string          `json:"name"`
-	Children []LinkHierarchy `json:"children"`
+	Link       string            `json:"name"`
+	Attributes map[string]string `json:"attributes"`
+	Children   []LinkHierarchy   `json:"children"`
 }
 
 type SiteStruct struct {
@@ -60,6 +61,7 @@ type Hierarchy struct {
 	CrawlerData `gorm:"embedded"`
 	Childrens   []Hierarchy `json:"childrens" gorm:"foreignKey:ParentLink;references:Link"`
 	ParentLink  string      `json:"-"`
+	Parent      *Hierarchy  `json:"-" gorm:"-"`
 }
 
 func (Hierarchy) TableName() string {
