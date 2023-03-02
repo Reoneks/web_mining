@@ -3,6 +3,8 @@ package tools
 import (
 	"strings"
 	"test/structs"
+
+	"golang.org/x/exp/slices"
 )
 
 func PrepareCrawlerText(text string) string {
@@ -69,6 +71,23 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy) (r
 	return
 }
 
+func UniqueHyperlinks(hierarchy *structs.Hierarchy) int64 {
+	return int64(len(uniqueHyperlinksProcessor(hierarchy)))
+}
+
+func uniqueHyperlinksProcessor(hierarchy *structs.Hierarchy) []string {
+	var result []string
+
+	result = slices.Clone(hierarchy.Hyperlinks)
+	for _, child := range hierarchy.Childrens {
+		links := uniqueHyperlinksProcessor(&child)
+		result = append(result, links...)
+	}
+
+	return Compact(result)
+
+}
+
 func PrepareLinks(links []string, baseURL string) []string {
 	for i, link := range links {
 		if !strings.Contains(link, "http://") && !strings.Contains(link, "https://") {
@@ -80,4 +99,16 @@ func PrepareLinks(links []string, baseURL string) []string {
 	}
 
 	return links
+}
+
+func Compact[T comparable](array []T) []T {
+	res := make([]T, 0, len(array))
+
+	for _, elem := range array {
+		if !slices.Contains(res, elem) {
+			res = append(res, elem)
+		}
+	}
+
+	return slices.Clip(res)
 }

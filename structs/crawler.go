@@ -28,6 +28,7 @@ type SiteStruct struct {
 	Files               int64          `json:"files" gorm:"-"`
 	Fonts               int64          `json:"fonts" gorm:"-"`
 	Hyperlinks          int64          `json:"hyperlinks" gorm:"-"`
+	UniqueHyperlinks    int64          `json:"unique_hyperlinks" gorm:"-"`
 	ProcessedHyperlinks int64          `json:"processed_hyperlinks" gorm:"-"`
 	InternalLinks       int64          `json:"internal_links" gorm:"-"`
 	Symbols             int64          `json:"symbols" gorm:"-"`
@@ -77,13 +78,13 @@ type CrawlerData struct {
 func (cd *CrawlerData) Merge(isHTMLBlock bool, ToMerge ...CrawlerData) {
 	for _, merge := range ToMerge {
 		cd.mergeText(merge.Text, isHTMLBlock)
-		cd.Images = slices.Compact(append(cd.Images, merge.Images...))
-		cd.Audio = slices.Compact(append(cd.Audio, merge.Audio...))
-		cd.Video = slices.Compact(append(cd.Video, merge.Video...))
-		cd.Fonts = slices.Compact(append(cd.Fonts, merge.Fonts...))
-		cd.Files = slices.Compact(append(cd.Files, merge.Files...))
-		cd.Hyperlinks = slices.Compact(append(cd.Hyperlinks, merge.Hyperlinks...))
-		cd.InternalLinks = slices.Compact(append(cd.InternalLinks, merge.InternalLinks...))
+		cd.Images = append(cd.Images, merge.Images...)
+		cd.Audio = append(cd.Audio, merge.Audio...)
+		cd.Video = append(cd.Video, merge.Video...)
+		cd.Fonts = append(cd.Fonts, merge.Fonts...)
+		cd.Files = append(cd.Files, merge.Files...)
+		cd.Hyperlinks = append(cd.Hyperlinks, merge.Hyperlinks...)
+		cd.InternalLinks = append(cd.InternalLinks, merge.InternalLinks...)
 		cd.Metadata = append(cd.Metadata, merge.Metadata...)
 	}
 }

@@ -84,15 +84,6 @@ func (c *Crawler) ParsePage(page io.Reader, baseURL *url.URL) (structs.CrawlerDa
 	}
 
 	data := c.crawlerFunc(doc)
-
-	data.Audio = slices.Compact(data.Audio)
-	data.Video = slices.Compact(data.Video)
-	data.Hyperlinks = slices.Compact(data.Hyperlinks)
-	data.Images = slices.Compact(data.Images)
-	data.InternalLinks = slices.Compact(data.InternalLinks)
-	data.Files = slices.Compact(data.Files)
-	data.Fonts = slices.Compact(data.Fonts)
-
 	for i, link := range data.Hyperlinks {
 		if strings.HasPrefix(link, "//") {
 			data.Hyperlinks[i] = baseURL.Scheme + ":" + link
@@ -109,6 +100,14 @@ func (c *Crawler) ParsePage(page io.Reader, baseURL *url.URL) (structs.CrawlerDa
 	data.Video = tools.PrepareLinks(data.Video, baseURL.String())
 	data.Files = tools.PrepareLinks(data.Files, baseURL.String())
 	data.Fonts = tools.PrepareLinks(data.Fonts, baseURL.String())
+
+	data.Audio = tools.Compact(data.Audio)
+	data.Video = tools.Compact(data.Video)
+	data.Hyperlinks = tools.Compact(data.Hyperlinks)
+	data.Images = tools.Compact(data.Images)
+	data.InternalLinks = tools.Compact(data.InternalLinks)
+	data.Files = tools.Compact(data.Files)
+	data.Fonts = tools.Compact(data.Fonts)
 	return data, nil
 }
 

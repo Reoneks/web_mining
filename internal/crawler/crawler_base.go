@@ -88,6 +88,7 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 	siteStruct.ProcessedHyperlinks = 1
 	siteStruct.StatusCodesCounter = make(map[int]int64)
 	siteStruct.LinkHierarchy = tools.HierarchyProcess(&siteStruct, siteStruct.Hierarchy)
+	siteStruct.UniqueHyperlinks = tools.UniqueHyperlinks(siteStruct.Hierarchy)
 	return siteStruct, nil
 }
 
