@@ -40,6 +40,9 @@ func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]
 
 	data, err := c.ParsePage(bytes.NewReader(resp.Body()), u)
 	if err != nil {
+		hierarchy.Link = page
+		hierarchy.StatusCode = resp.StatusCode()
+		hierarchy.Error = err.Error()
 		return
 	}
 
