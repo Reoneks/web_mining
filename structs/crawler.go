@@ -5,6 +5,7 @@ import (
 	"test/settings"
 
 	"github.com/lib/pq"
+	whoisparser "github.com/likexian/whois-parser"
 	"golang.org/x/exp/slices"
 )
 
@@ -14,32 +15,37 @@ type LinkHierarchy struct {
 }
 
 type SiteStruct struct {
-	DomainID            string         `json:"domain_id"`
-	Url                 string         `json:"url" gorm:"-"`
-	BaseURL             string         `json:"base_url" gorm:"primary_key"`
-	Punycode            string         `json:"punycode"`
-	DNSSec              bool           `json:"dns_sec"`
-	NameServers         pq.StringArray `json:"name_servers" gorm:"type:text[]"`
-	Status              pq.StringArray `json:"status" gorm:"type:text[]"`
-	WhoisServer         string         `json:"whois_server"`
-	Images              int64          `json:"images" gorm:"-"`
-	VideoLinks          int64          `json:"video" gorm:"-"`
-	AudioLinks          int64          `json:"audio" gorm:"-"`
-	Files               int64          `json:"files" gorm:"-"`
-	Fonts               int64          `json:"fonts" gorm:"-"`
-	Hyperlinks          int64          `json:"hyperlinks" gorm:"-"`
-	UniqueHyperlinks    int64          `json:"unique_hyperlinks" gorm:"-"`
-	ProcessedHyperlinks int64          `json:"processed_hyperlinks" gorm:"-"`
-	InternalLinks       int64          `json:"internal_links" gorm:"-"`
-	Symbols             int64          `json:"symbols" gorm:"-"`
-	Words               int64          `json:"words" gorm:"-"`
-	Paragraphs          int64          `json:"paragraphs" gorm:"-"`
-	Errors              int64          `json:"errors" gorm:"-"`
-	StatusCodesCounter  map[int]int64  `json:"status_codes" gorm:"-"`
-	CreatedDate         string         `json:"created_date"`
-	UpdatedDate         string         `json:"updated_date"`
-	ExpirationDate      string         `json:"expiration_date"`
-	LinkHierarchy       LinkHierarchy  `json:"hierarchy" gorm:"-"`
+	DomainID            string               `json:"domain_id"`
+	Url                 string               `json:"url" gorm:"-"`
+	BaseURL             string               `json:"base_url" gorm:"primary_key"`
+	Punycode            string               `json:"punycode"`
+	DNSSec              bool                 `json:"dns_sec"`
+	NameServers         pq.StringArray       `json:"name_servers" gorm:"type:text[]"`
+	Status              pq.StringArray       `json:"status" gorm:"type:text[]"`
+	WhoisServer         string               `json:"whois_server"`
+	Registrar           *whoisparser.Contact `json:"registrar" gorm:"serializer:json"`
+	Registrant          *whoisparser.Contact `json:"registrant" gorm:"serializer:json"`
+	Administrative      *whoisparser.Contact `json:"administrative" gorm:"serializer:json"`
+	Technical           *whoisparser.Contact `json:"technical" gorm:"serializer:json"`
+	Billing             *whoisparser.Contact `json:"billing" gorm:"serializer:json"`
+	Images              int64                `json:"images" gorm:"-"`
+	VideoLinks          int64                `json:"video" gorm:"-"`
+	AudioLinks          int64                `json:"audio" gorm:"-"`
+	Files               int64                `json:"files" gorm:"-"`
+	Fonts               int64                `json:"fonts" gorm:"-"`
+	Hyperlinks          int64                `json:"hyperlinks" gorm:"-"`
+	UniqueHyperlinks    int64                `json:"unique_hyperlinks" gorm:"-"`
+	ProcessedHyperlinks int64                `json:"processed_hyperlinks" gorm:"-"`
+	InternalLinks       int64                `json:"internal_links" gorm:"-"`
+	Symbols             int64                `json:"symbols" gorm:"-"`
+	Words               int64                `json:"words" gorm:"-"`
+	Paragraphs          int64                `json:"paragraphs" gorm:"-"`
+	Errors              int64                `json:"errors" gorm:"-"`
+	StatusCodesCounter  map[int]int64        `json:"status_codes" gorm:"-"`
+	CreatedDate         string               `json:"created_date"`
+	UpdatedDate         string               `json:"updated_date"`
+	ExpirationDate      string               `json:"expiration_date"`
+	LinkHierarchy       LinkHierarchy        `json:"hierarchy" gorm:"-"`
 
 	Hierarchy *Hierarchy        `json:"-" gorm:"foreignKey:ParentLink;references:BaseURL"`
 	Exclude   pq.StringArray    `json:"-" gorm:"type:text[]"`

@@ -1,0 +1,14 @@
+ALTER TABLE sites
+DROP COLUMN IF EXISTS "registrar";
+
+ALTER TABLE sites
+DROP COLUMN IF EXISTS "registrant";
+
+ALTER TABLE sites
+DROP COLUMN IF EXISTS "administrative";
+
+ALTER TABLE sites
+DROP COLUMN IF EXISTS "technical";
+
+ALTER TABLE sites
+DROP COLUMN IF EXISTS "billing";
