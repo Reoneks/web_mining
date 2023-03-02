@@ -25,6 +25,8 @@ type SiteStruct struct {
 	Images              int64          `json:"images" gorm:"-"`
 	VideoLinks          int64          `json:"video_links" gorm:"-"`
 	AudioLinks          int64          `json:"audio_links" gorm:"-"`
+	Files               int64          `json:"files" gorm:"-"`
+	Fonts               int64          `json:"fonts" gorm:"-"`
 	Hyperlinks          int64          `json:"hyperlinks" gorm:"-"`
 	ProcessedHyperlinks int64          `json:"processed_hyperlinks" gorm:"-"`
 	InternalLinks       int64          `json:"internal_links" gorm:"-"`
@@ -65,6 +67,8 @@ type CrawlerData struct {
 	Images        pq.StringArray      `json:"images" gorm:"type:text[]"`
 	Audio         pq.StringArray      `json:"audio" gorm:"type:text[]"`
 	Video         pq.StringArray      `json:"video" gorm:"type:text[]"`
+	Fonts         pq.StringArray      `json:"fonts" gorm:"type:text[]"`
+	Files         pq.StringArray      `json:"files" gorm:"type:text[]"`
 	Hyperlinks    pq.StringArray      `json:"hyperlinks" gorm:"type:text[]"`
 	InternalLinks pq.StringArray      `json:"internal_links" gorm:"type:text[]"`
 	Metadata      []map[string]string `json:"metadata" gorm:"serializer:json"`
@@ -76,6 +80,8 @@ func (cd *CrawlerData) Merge(isHTMLBlock bool, ToMerge ...CrawlerData) {
 		cd.Images = slices.Compact(append(cd.Images, merge.Images...))
 		cd.Audio = slices.Compact(append(cd.Audio, merge.Audio...))
 		cd.Video = slices.Compact(append(cd.Video, merge.Video...))
+		cd.Fonts = slices.Compact(append(cd.Fonts, merge.Fonts...))
+		cd.Files = slices.Compact(append(cd.Files, merge.Files...))
 		cd.Hyperlinks = slices.Compact(append(cd.Hyperlinks, merge.Hyperlinks...))
 		cd.InternalLinks = slices.Compact(append(cd.InternalLinks, merge.InternalLinks...))
 		cd.Metadata = append(cd.Metadata, merge.Metadata...)

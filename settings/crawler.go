@@ -5,4 +5,7 @@ var (
 	DontAddSpaceWhereSymbolRight = []string{".", ",", ";", ":", "?", "!", ")", "]", "}"}
 	DontAddSpaceWhereSymbolLeft  = []string{"(", "[", "{"}
 	NotAllowedTags               = []string{"script", "noscript", "style", "video", "source", "audio"}
+	ImageExtensions              = []string{".apng", ".avif", ".gif", ".jpg", ".jpeg", ".jfif", ".pjpeg", ".pjp", ".png", ".svg", ".webp", ".bmp", ".ico", ".cur", ".tif", ".tiff"}
+	FontsExtensions              = []string{".ttf", ".otf", ".woff", ".woff2", ".eot"}
+	FilesExtensions              = []string{".css", ".xml", ".xlsx", ".csv", ".pdf", ".txt"}
 )

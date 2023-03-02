@@ -1,0 +1,5 @@
+ALTER TABLE link_data
+ADD COLUMN IF NOT EXISTS "fonts" text ARRAY;
+
+ALTER TABLE link_data
+ADD COLUMN IF NOT EXISTS "files" text ARRAY;

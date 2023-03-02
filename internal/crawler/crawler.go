@@ -147,11 +147,33 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 
 			data.Metadata = append(data.Metadata, meta)
 		} else if node.Data == "link" || node.Data == "a" {
+		LINK_LOOP:
 			for _, attr := range node.Attr {
 				if attr.Key == "href" && !strings.Contains(attr.Val, "javascript:void(0)") {
 					if strings.HasPrefix(attr.Val, "#") {
 						data.InternalLinks = append(data.InternalLinks, attr.Val)
 					} else {
+						for _, imgFormat := range settings.ImageExtensions {
+							if strings.HasSuffix(attr.Val, imgFormat) {
+								data.Images = append(data.Images, attr.Val)
+								break LINK_LOOP
+							}
+						}
+
+						for _, fontFormat := range settings.FontsExtensions {
+							if strings.HasSuffix(attr.Val, fontFormat) {
+								data.Fonts = append(data.Fonts, attr.Val)
+								break LINK_LOOP
+							}
+						}
+
+						for _, fileFormat := range settings.FilesExtensions {
+							if strings.HasSuffix(attr.Val, fileFormat) {
+								data.Files = append(data.Files, attr.Val)
+								break LINK_LOOP
+							}
+						}
+
 						data.Hyperlinks = append(data.Hyperlinks, attr.Val)
 					}
 

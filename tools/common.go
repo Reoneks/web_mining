@@ -39,6 +39,8 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy) (r
 	resp.Images += int64(len(hierarchy.Images))
 	resp.AudioLinks += int64(len(hierarchy.Audio))
 	resp.VideoLinks += int64(len(hierarchy.Video))
+	resp.Files += int64(len(hierarchy.Files))
+	resp.Fonts += int64(len(hierarchy.Fonts))
 	resp.Hyperlinks += int64(len(hierarchy.Hyperlinks))
 	resp.ProcessedHyperlinks += int64(len(hierarchy.Childrens))
 	resp.InternalLinks += int64(len(hierarchy.InternalLinks))
