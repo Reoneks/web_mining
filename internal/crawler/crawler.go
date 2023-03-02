@@ -87,6 +87,8 @@ func (c *Crawler) ParsePage(page io.Reader, baseURL *url.URL) (structs.CrawlerDa
 	data.Hyperlinks = slices.Compact(data.Hyperlinks)
 	data.Images = slices.Compact(data.Images)
 	data.InternalLinks = slices.Compact(data.InternalLinks)
+	data.Files = slices.Compact(data.Files)
+	data.Fonts = slices.Compact(data.Fonts)
 
 	for i, link := range data.Hyperlinks {
 		if strings.HasPrefix(link, "//") {
@@ -170,6 +172,20 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 						for _, fileFormat := range settings.FilesExtensions {
 							if strings.HasSuffix(attr.Val, fileFormat) {
 								data.Files = append(data.Files, attr.Val)
+								break LINK_LOOP
+							}
+						}
+
+						for _, videoFormat := range settings.VideoExtensions {
+							if strings.HasSuffix(attr.Val, videoFormat) {
+								data.Video = append(data.Video, attr.Val)
+								break LINK_LOOP
+							}
+						}
+
+						for _, audioFormat := range settings.AudioExtensions {
+							if strings.HasSuffix(attr.Val, audioFormat) {
+								data.Audio = append(data.Audio, attr.Val)
 								break LINK_LOOP
 							}
 						}

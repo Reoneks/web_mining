@@ -23,8 +23,8 @@ type SiteStruct struct {
 	Status              pq.StringArray `json:"status" gorm:"type:text[]"`
 	WhoisServer         string         `json:"whois_server"`
 	Images              int64          `json:"images" gorm:"-"`
-	VideoLinks          int64          `json:"video_links" gorm:"-"`
-	AudioLinks          int64          `json:"audio_links" gorm:"-"`
+	VideoLinks          int64          `json:"video" gorm:"-"`
+	AudioLinks          int64          `json:"audio" gorm:"-"`
 	Files               int64          `json:"files" gorm:"-"`
 	Fonts               int64          `json:"fonts" gorm:"-"`
 	Hyperlinks          int64          `json:"hyperlinks" gorm:"-"`
