@@ -95,6 +95,10 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hy
 }
 
 func SetParents(hierarchy *structs.Hierarchy) {
+	if hierarchy == nil {
+		return
+	}
+
 	for i := range hierarchy.Childrens {
 		hierarchy.Childrens[i].Parent = hierarchy
 		SetParents(&hierarchy.Childrens[i])
@@ -102,6 +106,10 @@ func SetParents(hierarchy *structs.Hierarchy) {
 }
 
 func UniqueHyperlinks(hierarchy *structs.Hierarchy) int64 {
+	if hierarchy == nil {
+		return 0
+	}
+
 	return int64(len(uniqueHyperlinksProcessor(hierarchy)))
 }
 
