@@ -3,6 +3,7 @@ package cmd
 import (
 	"test/config"
 	"test/internal/crawler"
+	"test/internal/cron"
 	"test/pkg/postgres"
 	"test/pkg/whois"
 	"test/server"
@@ -20,9 +21,14 @@ func Exec() fx.Option {
 				annotationDupl[postgres.Postgres],
 				fx.As(new(crawler.Postgres)),
 				fx.As(new(handlers.Postgres)),
+				fx.As(new(cron.Postgres)),
 			),
 			fx.Annotate(whois.NewWhoIS, fx.As(new(crawler.WhoIS))),
-			fx.Annotate(crawler.NewCrawlerBase, fx.As(new(handlers.Crawler))),
+			fx.Annotate(crawler.NewCrawlerBase,
+				fx.As(new(handlers.Crawler)),
+				fx.As(new(cron.Crawler)),
+			),
+			cron.NewCron,
 			handlers.NewHandler,
 			server.NewHTTPServer,
 		),
@@ -36,7 +42,8 @@ func annotationDupl[T any](v *T) *T {
 	return v
 }
 
-func prepareHooks(server server.HTTPServer, postgres *postgres.Postgres, lc fx.Lifecycle) {
+func prepareHooks(server server.HTTPServer, postgres *postgres.Postgres, cron *cron.Cron, lc fx.Lifecycle) {
+	lc.Append(fx.Hook{OnStart: cron.Start, OnStop: cron.Stop})
 	lc.Append(fx.Hook{OnStop: postgres.Stop})
 	lc.Append(fx.Hook{OnStart: server.Start, OnStop: server.Stop})
 }

@@ -45,6 +45,17 @@ func (p *Postgres) GetFullData(link string, onlyThisPage bool) (structs.SiteStru
 	return result, nil
 }
 
+func (p *Postgres) GetSites() ([]structs.SiteStruct, error) {
+	var result []structs.SiteStruct
+
+	err := p.db.Model(&structs.SiteStruct{}).Find(&result).Error
+	if err != nil {
+		return nil, fmt.Errorf("Error getting sites: %w", err)
+	}
+
+	return result, nil
+}
+
 func (p *Postgres) GetCrawlerData(link string) (structs.CrawlerData, error) {
 	var result structs.CrawlerData
 

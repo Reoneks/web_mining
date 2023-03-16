@@ -35,11 +35,18 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 		return structs.SiteStruct{}, fmt.Errorf("CrawlerBase.PageWalker url parse error: %w", err)
 	}
 
-	siteStruct, err := cb.postgres.GetFullData(fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host), onlyThisPage)
-	if onlyThisPage && err == nil {
-		data, err := cb.postgres.GetCrawlerData(page)
-		if err == nil {
-			siteStruct.Hierarchy = &structs.Hierarchy{CrawlerData: data}
+	if page == fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host) {
+		page += "/"
+	}
+
+	var siteStruct structs.SiteStruct
+	if !forceCollect {
+		siteStruct, err = cb.postgres.GetFullData(fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host), onlyThisPage)
+		if onlyThisPage && err == nil {
+			data, err := cb.postgres.GetCrawlerData(page)
+			if err == nil {
+				siteStruct.Hierarchy = &structs.Hierarchy{CrawlerData: data}
+			}
 		}
 	}
 
