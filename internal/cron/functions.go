@@ -1,6 +1,7 @@
 package cron
 
 import (
+	"test/settings"
 	"test/structs"
 
 	"github.com/rs/zerolog/log"
@@ -14,7 +15,7 @@ func (c *Cron) UpdateSites() {
 		return
 	}
 
-	p := pool.New().WithMaxGoroutines(100)
+	p := pool.New().WithMaxGoroutines(settings.MaxCronGoroutines)
 	for _, site := range sites {
 		p.Go(func(site structs.SiteStruct) func() {
 			return func() {

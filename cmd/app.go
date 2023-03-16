@@ -8,6 +8,7 @@ import (
 	"test/pkg/whois"
 	"test/server"
 	"test/server/handlers"
+	"test/server/websocket"
 
 	"go.uber.org/fx"
 )
@@ -29,6 +30,11 @@ func Exec() fx.Option {
 				fx.As(new(cron.Crawler)),
 			),
 			cron.NewCron,
+			fx.Annotate(
+				websocket.NewWebsocketManager,
+				fx.As(new(handlers.WSManager)),
+				fx.As(new(server.WSManager)),
+			),
 			handlers.NewHandler,
 			server.NewHTTPServer,
 		),
@@ -42,7 +48,7 @@ func annotationDupl[T any](v *T) *T {
 	return v
 }
 
-func prepareHooks(server server.HTTPServer, postgres *postgres.Postgres, cron *cron.Cron, lc fx.Lifecycle) {
+func prepareHooks(server *server.HTTPServer, postgres *postgres.Postgres, cron *cron.Cron, lc fx.Lifecycle) {
 	lc.Append(fx.Hook{OnStart: cron.Start, OnStop: cron.Stop})
 	lc.Append(fx.Hook{OnStop: postgres.Stop})
 	lc.Append(fx.Hook{OnStart: server.Start, OnStop: server.Stop})
