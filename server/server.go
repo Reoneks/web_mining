@@ -11,32 +11,35 @@ import (
 	log "github.com/rs/zerolog/log"
 )
 
-type HTTPServer interface {
-	Start(ctx context.Context) error
-	Stop(ctx context.Context) error
+type WSManager interface {
+	WS(echo.Context) error
 }
 
-type httpServer struct {
+type HTTPServer struct {
 	router *echo.Echo
 
 	cfg      *config.Config
 	handlers *handlers.Handler
+	ws       WSManager
 }
 
 func NewHTTPServer(
 	cfg *config.Config,
 	handlers *handlers.Handler,
-) HTTPServer {
-	return &httpServer{
+	ws WSManager,
+) *HTTPServer {
+	return &HTTPServer{
 		cfg:      cfg,
 		handlers: handlers,
+		ws:       ws,
 	}
 }
 
-func (s *httpServer) Start(ctx context.Context) error {
+func (s *HTTPServer) Start(ctx context.Context) error {
 	s.router = echo.New()
 	s.router.Use(middleware.LoggerMiddleware(), middleware.CorsMiddleware(), middleware.RecoverMiddleware())
 
+	s.router.GET("/ws", s.ws.WS)
 	s.router.GET("/parse_site", s.handlers.GetSiteStruct)
 	s.router.GET("/details", s.handlers.GetDetails)
 
@@ -49,6 +52,6 @@ func (s *httpServer) Start(ctx context.Context) error {
 	return nil
 }
 
-func (s *httpServer) Stop(ctx context.Context) error {
+func (s *HTTPServer) Stop(ctx context.Context) error {
 	return s.router.Shutdown(ctx)
 }
