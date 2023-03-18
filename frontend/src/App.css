@@ -1,0 +1,24 @@
+.App {
+  height:100%;
+  display: flex;
+}
+
+.Tree{
+  float:left;
+  width: 60%;
+}
+
+.Json{
+  float:right;
+  width: 40%;
+}
+
+#return {
+  height: 40px;
+  width: 40px;
+  position:fixed;
+  right: 0.4%;
+  background: transparent;
+  border: transparent;
+}
+
