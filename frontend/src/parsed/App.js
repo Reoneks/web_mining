@@ -3,7 +3,7 @@ import { JsonToTable } from "react-json-to-table";
 import "./App.css";
 import { Component } from "react";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import _ from "lodash";
 
 class App extends Component {
@@ -83,6 +83,15 @@ class App extends Component {
     return (
       <div className="App">
         <div className="Tree">
+          <Link to="/">
+            <button id="close">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/463/463612.png"
+                alt="close"
+                width="30"
+              />
+            </button>
+          </Link>
           <Tree
             data={this.state.hierarchy}
             initialDepth={0}
