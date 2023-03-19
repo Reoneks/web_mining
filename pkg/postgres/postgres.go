@@ -20,8 +20,14 @@ type Postgres struct {
 	db *gorm.DB
 }
 
-func (p *Postgres) SaveSiteStruct(siteStruct structs.SiteStruct) error {
-	err := p.db.Model(&siteStruct).Session(&gorm.Session{FullSaveAssociations: true}).Where("base_url = ?", siteStruct.BaseURL).Save(&siteStruct).Error
+func (p *Postgres) SaveSiteStruct(siteStruct structs.SiteStruct, onlyThisPage, force bool) error {
+	baseReq := p.db.Model(&siteStruct).Session(&gorm.Session{FullSaveAssociations: true})
+
+	if onlyThisPage && force {
+		baseReq.Omit("Hierarchy.ParentLink")
+	}
+
+	err := baseReq.Where("base_url = ?", siteStruct.BaseURL).Save(&siteStruct).Error
 	if err != nil {
 		return fmt.Errorf("Error saving site structure: %w", err)
 	}
@@ -29,7 +35,7 @@ func (p *Postgres) SaveSiteStruct(siteStruct structs.SiteStruct) error {
 	return nil
 }
 
-func (p *Postgres) GetFullData(link string, onlyThisPage bool) (structs.SiteStruct, error) {
+func (p *Postgres) GetFullData(link, url string, onlyThisPage bool) (structs.SiteStruct, error) {
 	var result structs.SiteStruct
 
 	baseReq := p.db.Model(&result)
@@ -40,6 +46,15 @@ func (p *Postgres) GetFullData(link string, onlyThisPage bool) (structs.SiteStru
 	err := baseReq.Where("base_url = ?", link).First(&result).Error
 	if err != nil {
 		return structs.SiteStruct{}, fmt.Errorf("Error getting site structure: %w", err)
+	}
+
+	if onlyThisPage {
+		crawlerData, err := p.GetCrawlerData(url)
+		if err != nil {
+			return structs.SiteStruct{}, fmt.Errorf("Error getting crawler data: %w", err)
+		}
+
+		result.Hierarchy = &structs.Hierarchy{CrawlerData: crawlerData, ParentLink: link}
 	}
 
 	return result, nil
