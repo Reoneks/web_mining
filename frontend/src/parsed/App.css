@@ -1,15 +1,15 @@
 .App {
-  height:100%;
-  display: flex;
+  display: -ms-flex; display: -webkit-flex; display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex-grow: 1;
 }
 
 .Tree{
-  float:left;
   width: 60%;
 }
 
 .Json{
-  float:right;
   width: 40%;
 }
 

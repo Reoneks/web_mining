@@ -5,7 +5,6 @@ import (
 	"strings"
 	"test/structs"
 
-	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 )
@@ -22,26 +21,13 @@ func (h *Handler) GetSiteStruct(ctx echo.Context) error {
 		headers[key] = strings.Join(values, ",")
 	}
 
-	eventID := uuid.NewString()
-	h.p.Go(func(siteParseReq structs.SiteParseReq, headers map[string]string, eventID string) func() {
-		return func() {
-			resp, err := h.crawler.PageWalker(siteParseReq.URL, siteParseReq.Exclude, siteParseReq.OnlyThisPage, siteParseReq.ForceCollect, headers)
-			if err != nil {
-				log.Error().Str("function", "GetSiteStruct").Err(err).Msg(ErrGetSiteStruct.Error())
-				err := h.ws.Send(eventID, "Server internal error")
-				if err != nil {
-					log.Error().Str("function", "GetSiteStruct").Err(err).Msg("Failed to send ws message")
-				}
-			}
+	resp, err := h.crawler.PageWalker(siteParseReq.URL, siteParseReq.Exclude, siteParseReq.OnlyThisPage, siteParseReq.ForceCollect, headers)
+	if err != nil {
+		log.Error().Str("function", "GetSiteStruct").Err(err).Msg(ErrGetSiteStruct.Error())
+		return ctx.JSON(http.StatusBadRequest, newHTTPError(ErrGetSiteStruct))
+	}
 
-			err = h.ws.Send(eventID, resp)
-			if err != nil {
-				log.Error().Str("function", "GetSiteStruct").Err(err).Msg("Failed to send ws message")
-			}
-		}
-	}(siteParseReq, headers, eventID))
-
-	return ctx.String(http.StatusOK, eventID)
+	return ctx.JSON(http.StatusOK, resp)
 }
 
 func (h *Handler) GetDetails(ctx echo.Context) error {

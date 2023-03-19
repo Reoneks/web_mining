@@ -1,10 +1,9 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import WrappedComponent from "../parsed/App";
 import Styles from "./styles";
 import { Form, Field } from "react-final-form";
 import arrayMutators from "final-form-arrays";
 import { FieldArray } from "react-final-form-arrays";
-import { Link } from "react-router-dom";
 
 export default function Wrapper() {
   return (
