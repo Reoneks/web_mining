@@ -11,27 +11,20 @@ import (
 	log "github.com/rs/zerolog/log"
 )
 
-type WSManager interface {
-	WS(echo.Context) error
-}
-
 type HTTPServer struct {
 	router *echo.Echo
 
 	cfg      *config.Config
 	handlers *handlers.Handler
-	ws       WSManager
 }
 
 func NewHTTPServer(
 	cfg *config.Config,
 	handlers *handlers.Handler,
-	ws WSManager,
 ) *HTTPServer {
 	return &HTTPServer{
 		cfg:      cfg,
 		handlers: handlers,
-		ws:       ws,
 	}
 }
 
@@ -39,7 +32,6 @@ func (s *HTTPServer) Start(ctx context.Context) error {
 	s.router = echo.New()
 	s.router.Use(middleware.LoggerMiddleware(), middleware.CorsMiddleware(), middleware.RecoverMiddleware())
 
-	s.router.GET("/ws", s.ws.WS)
 	s.router.GET("/parse_site", s.handlers.GetSiteStruct)
 	s.router.GET("/details", s.handlers.GetDetails)
 

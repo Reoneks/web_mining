@@ -1,0 +1,33 @@
+.App {
+  display: -ms-flex; display: -webkit-flex; display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex-grow: 1;
+}
+
+.Tree{
+  width: 60%;
+}
+
+.Json{
+  width: 40%;
+}
+
+#return {
+  height: 40px;
+  width: 40px;
+  position:fixed;
+  right: 0.4%;
+  background: transparent;
+  border: transparent;
+}
+
+#close {
+  height: 40px;
+  width: 40px;
+  position:fixed;
+  left: 0.4%;
+  background: transparent;
+  border: transparent;
+}
+

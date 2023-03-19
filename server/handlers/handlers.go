@@ -14,19 +14,14 @@ type Postgres interface {
 	GetCrawlerData(link string) (structs.CrawlerData, error)
 }
 
-type WSManager interface {
-	Send(eventID string, data any) error
-}
-
 type Handler struct {
 	crawler  Crawler
 	postgres Postgres
-	ws       WSManager
 
 	p *pool.Pool
 }
 
-func NewHandler(crawler Crawler, postgres Postgres, ws WSManager) *Handler {
+func NewHandler(crawler Crawler, postgres Postgres) *Handler {
 	p := pool.New()
-	return &Handler{crawler: crawler, postgres: postgres, ws: ws, p: p}
+	return &Handler{crawler: crawler, postgres: postgres, p: p}
 }

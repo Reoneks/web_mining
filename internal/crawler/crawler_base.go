@@ -15,8 +15,8 @@ import (
 )
 
 type Postgres interface {
-	SaveSiteStruct(siteStruct structs.SiteStruct) error
-	GetFullData(link string, onlyThisPage bool) (structs.SiteStruct, error)
+	SaveSiteStruct(siteStruct structs.SiteStruct, onlyThisPage, force bool) error
+	GetFullData(link, url string, onlyThisPage bool) (structs.SiteStruct, error)
 	GetCrawlerData(link string) (structs.CrawlerData, error)
 }
 
@@ -41,7 +41,7 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 
 	var siteStruct structs.SiteStruct
 	if !forceCollect {
-		siteStruct, err = cb.postgres.GetFullData(fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host), onlyThisPage)
+		siteStruct, err = cb.postgres.GetFullData(fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host), page, onlyThisPage)
 		if onlyThisPage && err == nil {
 			data, err := cb.postgres.GetCrawlerData(page)
 			if err == nil {
@@ -91,7 +91,7 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 			Headers:        headers,
 		}
 
-		if err := cb.postgres.SaveSiteStruct(siteStruct); err != nil {
+		if err := cb.postgres.SaveSiteStruct(siteStruct, onlyThisPage, forceCollect); err != nil {
 			log.Error().Str("function", "PageWalker").Err(err).Msg("CrawlerBase.PageWalker postgres SaveSiteStruct error")
 		}
 	} else {

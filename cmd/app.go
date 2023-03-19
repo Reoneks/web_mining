@@ -8,7 +8,6 @@ import (
 	"test/pkg/whois"
 	"test/server"
 	"test/server/handlers"
-	"test/server/websocket"
 
 	"go.uber.org/fx"
 )
@@ -30,11 +29,6 @@ func Exec() fx.Option {
 				fx.As(new(cron.Crawler)),
 			),
 			cron.NewCron,
-			fx.Annotate(
-				websocket.NewWebsocketManager,
-				fx.As(new(handlers.WSManager)),
-				fx.As(new(server.WSManager)),
-			),
 			handlers.NewHandler,
 			server.NewHTTPServer,
 		),
