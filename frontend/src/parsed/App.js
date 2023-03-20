@@ -31,7 +31,9 @@ class App extends Component {
       only_this_page === undefined ? false : only_this_page
     );
     searchParams.append("force_collect", force === undefined ? false : force);
-    searchParams.append("exclude", exclude === undefined ? null : exclude);
+    exclude.forEach((excl,i) => {
+      searchParams.append("exclude", excl);
+    });
 
     const res = await axios(
       "http://localhost:1140/parse_site?" + searchParams.toString()
