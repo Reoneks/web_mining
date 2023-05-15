@@ -11,7 +11,7 @@ class App extends Component {
     super(props);
     this.state = {
       showHideReturn: false,
-      siteStruct: { Loading: "wait ..." },
+      siteStruct: { Loading: "wait..." },
       hierarchy: [{ name: "Loading..." }],
     };
 
@@ -42,7 +42,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    if (_.isEqual(this.state.siteStruct, { Loading: "wait ..." })) {
+    if (_.isEqual(this.state.siteStruct, { Loading: "wait..." })) {
       this.getData(this.url, this.only_this_page, this.force, this.exclude)
         .then((data) => {
           const { hierarchy, ...rest } = data;
