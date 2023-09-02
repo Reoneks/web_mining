@@ -1,12 +1,13 @@
 package structs
 
 import (
+	"slices"
 	"strings"
-	"test/settings"
+
+	"dyploma/settings"
 
 	"github.com/lib/pq"
 	whoisparser "github.com/likexian/whois-parser"
-	"golang.org/x/exp/slices"
 )
 
 type LinkHierarchy struct {
@@ -17,7 +18,7 @@ type LinkHierarchy struct {
 
 type SiteStruct struct {
 	DomainID            string               `json:"domain_id"`
-	Url                 string               `json:"url" gorm:"-"`
+	URL                 string               `json:"url" gorm:"-"`
 	BaseURL             string               `json:"base_url" gorm:"primary_key"`
 	Punycode            string               `json:"punycode"`
 	DNSSec              bool                 `json:"dns_sec"`
@@ -73,6 +74,7 @@ type CrawlerData struct {
 	StatusCode    int                 `json:"status_code"`
 	Error         string              `json:"error"`
 	Text          string              `json:"text"`
+	Ping          float64             `json:"ping"`
 	Images        pq.StringArray      `json:"images" gorm:"type:text[]"`
 	Audio         pq.StringArray      `json:"audio" gorm:"type:text[]"`
 	Video         pq.StringArray      `json:"video" gorm:"type:text[]"`
@@ -83,8 +85,8 @@ type CrawlerData struct {
 	Metadata      []map[string]string `json:"metadata" gorm:"serializer:json"`
 }
 
-func (cd *CrawlerData) Merge(isHTMLBlock bool, ToMerge ...CrawlerData) {
-	for _, merge := range ToMerge {
+func (cd *CrawlerData) Merge(isHTMLBlock bool, toMerge ...CrawlerData) {
+	for _, merge := range toMerge {
 		cd.mergeText(merge.Text, isHTMLBlock)
 		cd.Images = append(cd.Images, merge.Images...)
 		cd.Audio = append(cd.Audio, merge.Audio...)

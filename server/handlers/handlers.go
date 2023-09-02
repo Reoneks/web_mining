@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"test/structs"
+	"dyploma/structs"
 
 	"github.com/sourcegraph/conc/pool"
 )

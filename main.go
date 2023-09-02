@@ -1,7 +1,7 @@
 package main
 
 import (
-	"test/cmd"
+	"dyploma/cmd"
 
 	"go.uber.org/fx"
 )

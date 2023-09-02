@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"test/config"
-	"test/structs"
+
+	"dyploma/config"
+	"dyploma/structs"
 
 	"github.com/golang-migrate/migrate/v4"
 	mpostgres "github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/source/file" // Need for migrations
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	glog "gorm.io/gorm/logger"

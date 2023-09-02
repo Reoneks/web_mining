@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"net/url"
 	"reflect"
-	"test/structs"
-	"test/tools"
+
+	"dyploma/structs"
+	"dyploma/tools"
 
 	"github.com/lib/pq"
 	whoisparser "github.com/likexian/whois-parser"
@@ -24,24 +25,24 @@ type WhoIS interface {
 	WhoIS(site *url.URL) (whoisparser.WhoisInfo, error)
 }
 
-type CrawlerBase struct {
+type Base struct {
 	postgres Postgres
 	whois    WhoIS
 }
 
-func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, forceCollect bool, headers map[string]string) (structs.SiteStruct, error) {
-	pageParsedUrl, err := url.Parse(page)
+func (cb *Base) PageWalker(page string, exclude []string, onlyThisPage, forceCollect bool, headers map[string]string) (structs.SiteStruct, error) {
+	pageParsedURL, err := url.Parse(page)
 	if err != nil {
 		return structs.SiteStruct{}, fmt.Errorf("CrawlerBase.PageWalker url parse error: %w", err)
 	}
 
-	if page == fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host) {
+	if page == fmt.Sprintf("%s://%s", pageParsedURL.Scheme, pageParsedURL.Host) {
 		page += "/"
 	}
 
 	var siteStruct structs.SiteStruct
 	if !forceCollect {
-		siteStruct, err = cb.postgres.GetFullData(fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host), page, onlyThisPage)
+		siteStruct, err = cb.postgres.GetFullData(fmt.Sprintf("%s://%s", pageParsedURL.Scheme, pageParsedURL.Host), page, onlyThisPage)
 		if onlyThisPage && err == nil {
 			data, err := cb.postgres.GetCrawlerData(page)
 			if err == nil {
@@ -55,7 +56,7 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 			log.Error().Str("function", "PageWalker").Err(err).Msg("CrawlerBase.PageWalker postgres GetFullData error")
 		}
 
-		whoisParsed, err := cb.whois.WhoIS(pageParsedUrl)
+		whoisParsed, err := cb.whois.WhoIS(pageParsedURL)
 		if err != nil {
 			log.Error().Str("function", "PageWalker").Err(err).Msg("CrawlerBase.PageWalker whois error")
 		} else if whoisParsed.Domain == nil {
@@ -69,10 +70,10 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 			log.Error().Str("function", "PageWalker").Err(err).Msg("CrawlerBase.PageWalker url parse error")
 		}
 
-		hierarchy.ParentLink = fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host)
+		hierarchy.ParentLink = fmt.Sprintf("%s://%s", pageParsedURL.Scheme, pageParsedURL.Host)
 		siteStruct = structs.SiteStruct{
 			DomainID:       whoisParsed.Domain.ID,
-			BaseURL:        fmt.Sprintf("%s://%s", pageParsedUrl.Scheme, pageParsedUrl.Host),
+			BaseURL:        fmt.Sprintf("%s://%s", pageParsedURL.Scheme, pageParsedURL.Host),
 			Punycode:       whoisParsed.Domain.Punycode,
 			DNSSec:         whoisParsed.Domain.DNSSec,
 			NameServers:    whoisParsed.Domain.NameServers,
@@ -98,7 +99,7 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 		tools.SetParents(siteStruct.Hierarchy)
 	}
 
-	siteStruct.Url = page
+	siteStruct.URL = page
 	siteStruct.ProcessedHyperlinks = 1
 	siteStruct.StatusCodesCounter = make(map[int]int64)
 	siteStruct.LinkHierarchy = tools.HierarchyProcess(&siteStruct, siteStruct.Hierarchy, make(map[string][]structs.LinkHierarchy))
@@ -106,6 +107,6 @@ func (cb *CrawlerBase) PageWalker(page string, exclude []string, onlyThisPage, f
 	return siteStruct, nil
 }
 
-func NewCrawlerBase(postgres Postgres, whois WhoIS) *CrawlerBase {
-	return &CrawlerBase{postgres: postgres, whois: whois}
+func NewCrawlerBase(postgres Postgres, whois WhoIS) *Base {
+	return &Base{postgres: postgres, whois: whois}
 }

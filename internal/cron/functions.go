@@ -1,8 +1,8 @@
 package cron
 
 import (
-	"test/settings"
-	"test/structs"
+	"dyploma/settings"
+	"dyploma/structs"
 
 	"github.com/rs/zerolog/log"
 	"github.com/sourcegraph/conc/pool"

@@ -2,10 +2,12 @@ package server
 
 import (
 	"context"
+	"errors"
 	"net/http"
-	"test/config"
-	"test/server/handlers"
-	"test/server/middleware"
+
+	"dyploma/config"
+	"dyploma/server/handlers"
+	"dyploma/server/middleware"
 
 	"github.com/labstack/echo/v4"
 	log "github.com/rs/zerolog/log"
@@ -28,7 +30,7 @@ func NewHTTPServer(
 	}
 }
 
-func (s *HTTPServer) Start(ctx context.Context) error {
+func (s *HTTPServer) Start(_ context.Context) error {
 	s.router = echo.New()
 	s.router.Use(middleware.LoggerMiddleware(), middleware.CorsMiddleware(), middleware.RecoverMiddleware())
 
@@ -36,7 +38,7 @@ func (s *HTTPServer) Start(ctx context.Context) error {
 	s.router.GET("/details", s.handlers.GetDetails)
 
 	go func() {
-		if err := s.router.Start(s.cfg.AppAddr); err != nil && err != http.ErrServerClosed {
+		if err := s.router.Start(s.cfg.AppAddr); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal().Str("function", "Start").Err(err).Msg("Server start error")
 		}
 	}()

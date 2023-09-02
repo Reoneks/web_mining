@@ -6,14 +6,16 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"slices"
 	"strings"
-	"test/settings"
-	"test/structs"
-	"test/tools"
+	"time"
+
+	"dyploma/settings"
+	"dyploma/structs"
+	"dyploma/tools"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/rs/zerolog/log"
-	"golang.org/x/exp/slices"
 	"golang.org/x/net/html"
 )
 
@@ -27,7 +29,7 @@ func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]
 		hierarchy.Link = page
 		hierarchy.StatusCode = resp.StatusCode()
 		hierarchy.Error = err.Error()
-		return
+		return hierarchy, err
 	}
 
 	u, err := url.Parse(page)
@@ -35,7 +37,7 @@ func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]
 		hierarchy.Link = page
 		hierarchy.StatusCode = resp.StatusCode()
 		hierarchy.Error = err.Error()
-		return
+		return hierarchy, err
 	}
 
 	data, err := c.ParsePage(bytes.NewReader(resp.Body()), u)
@@ -43,13 +45,14 @@ func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]
 		hierarchy.Link = page
 		hierarchy.StatusCode = resp.StatusCode()
 		hierarchy.Error = err.Error()
-		return
+		return hierarchy, err
 	}
 
 	data.Link = page
 	data.StatusCode = resp.StatusCode()
 
 	hierarchy.CrawlerData = data
+	hierarchy.Ping = float64(resp.Time()) / float64(time.Second)
 	if !onlyThisPage {
 		process := make([]string, 0, len(data.Hyperlinks))
 		for _, link := range data.Hyperlinks {
@@ -71,7 +74,7 @@ func (c *Crawler) PageWalker(page string, onlyThisPage bool, headers map[string]
 		}
 	}
 
-	return
+	return hierarchy, err
 }
 
 func (c *Crawler) ParsePage(page io.Reader, baseURL *url.URL) (structs.CrawlerData, error) {
@@ -86,13 +89,15 @@ func (c *Crawler) ParsePage(page io.Reader, baseURL *url.URL) (structs.CrawlerDa
 
 	data := c.crawlerFunc(doc)
 	for i, link := range data.Hyperlinks {
-		if strings.HasPrefix(link, "//") {
+		switch {
+		case strings.HasPrefix(link, "//"):
 			data.Hyperlinks[i] = baseURL.Scheme + ":" + link
-		} else if strings.HasPrefix(link, "/") {
+		case strings.HasPrefix(link, "/"):
 			data.Hyperlinks[i] = fmt.Sprintf("%s://%s", baseURL.Scheme, baseURL.Host) + link
-		} else if strings.HasPrefix(link, "?") {
+		case strings.HasPrefix(link, "?"):
 			baseURL.RawQuery = ""
 			data.Hyperlinks[i] = baseURL.String() + link
+
 		}
 	}
 
@@ -121,7 +126,8 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 			data.Text = text
 		}
 	} else if node.Type == html.ElementNode {
-		if node.Data == "meta" {
+		switch {
+		case node.Data == "meta":
 			meta := make(map[string]string)
 
 			for _, attr := range node.Attr {
@@ -129,7 +135,7 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 			}
 
 			data.Metadata = append(data.Metadata, meta)
-		} else if node.Data == "link" || node.Data == "a" {
+		case node.Data == "link" || node.Data == "a":
 		LINK_LOOP:
 			for _, attr := range node.Attr {
 				if attr.Key == "href" && !strings.Contains(attr.Val, "javascript:void(0)") {
@@ -137,35 +143,35 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 						data.InternalLinks = append(data.InternalLinks, attr.Val)
 					} else {
 						for _, imgFormat := range settings.ImageExtensions {
-							if strings.HasSuffix(attr.Val, imgFormat) {
+							if strings.HasSuffix(strings.Split(attr.Val, "?")[0], imgFormat) {
 								data.Images = append(data.Images, attr.Val)
 								break LINK_LOOP
 							}
 						}
 
 						for _, fontFormat := range settings.FontsExtensions {
-							if strings.HasSuffix(attr.Val, fontFormat) {
+							if strings.HasSuffix(strings.Split(attr.Val, "?")[0], fontFormat) {
 								data.Fonts = append(data.Fonts, attr.Val)
 								break LINK_LOOP
 							}
 						}
 
 						for _, fileFormat := range settings.FilesExtensions {
-							if strings.HasSuffix(attr.Val, fileFormat) {
+							if strings.HasSuffix(strings.Split(attr.Val, "?")[0], fileFormat) {
 								data.Files = append(data.Files, attr.Val)
 								break LINK_LOOP
 							}
 						}
 
 						for _, videoFormat := range settings.VideoExtensions {
-							if strings.HasSuffix(attr.Val, videoFormat) {
+							if strings.HasSuffix(strings.Split(attr.Val, "?")[0], videoFormat) {
 								data.Video = append(data.Video, attr.Val)
 								break LINK_LOOP
 							}
 						}
 
 						for _, audioFormat := range settings.AudioExtensions {
-							if strings.HasSuffix(attr.Val, audioFormat) {
+							if strings.HasSuffix(strings.Split(attr.Val, "?")[0], audioFormat) {
 								data.Audio = append(data.Audio, attr.Val)
 								break LINK_LOOP
 							}
@@ -177,7 +183,7 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 					break
 				}
 			}
-		} else if node.Data == "source" {
+		case node.Data == "source":
 			var links []string
 			for _, attr := range node.Attr {
 				if attr.Key == "src" {
@@ -199,7 +205,7 @@ func (c *Crawler) crawlerFunc(node *html.Node) structs.CrawlerData {
 					data.Audio = append(data.Audio, links...)
 				}
 			}
-		} else if node.Data == "img" {
+		case node.Data == "img":
 			for _, attr := range node.Attr {
 				if attr.Key == "src" && !strings.HasPrefix(attr.Val, "data:image/") {
 					data.Images = append(data.Images, attr.Val)

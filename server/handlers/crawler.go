@@ -3,7 +3,8 @@ package handlers
 import (
 	"net/http"
 	"strings"
-	"test/structs"
+
+	"dyploma/structs"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"

@@ -1,5 +1,5 @@
 import Tree from "react-d3-tree";
-import { JsonToTable } from "react-json-to-table";
+import { JsonTable } from "react-json-to-html";
 import "./App.css";
 import { Component } from "react";
 import axios from "axios";
@@ -15,6 +15,7 @@ class App extends Component {
       hierarchy: [{ name: "Loading..." }],
     };
 
+    this.json = {};
     this.setJson = this.setJson.bind(this);
     this.resetJson = this.resetJson.bind(this);
     this.url = this.props.url;
@@ -31,9 +32,11 @@ class App extends Component {
       only_this_page === undefined ? false : only_this_page
     );
     searchParams.append("force_collect", force === undefined ? false : force);
-    exclude.forEach((excl,i) => {
-      searchParams.append("exclude", excl);
-    });
+    if (this.exclude !== undefined && exclude.length > 0) {
+      exclude.forEach((excl, i) => {
+        searchParams.append("exclude", excl);
+      });
+    }
 
     const res = await axios(
       "http://localhost:1140/parse_site?" + searchParams.toString()
@@ -114,7 +117,7 @@ class App extends Component {
               />
             </button>
           )}
-          <JsonToTable json={this.json} />
+          <JsonTable json={this.json} />
         </div>
       </div>
     );

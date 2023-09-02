@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"test/config"
-	"test/internal/crawler"
-	"test/internal/cron"
-	"test/pkg/postgres"
-	"test/pkg/whois"
-	"test/server"
-	"test/server/handlers"
+	"dyploma/config"
+	"dyploma/internal/crawler"
+	"dyploma/internal/cron"
+	"dyploma/pkg/postgres"
+	"dyploma/pkg/whois"
+	"dyploma/server"
+	"dyploma/server/handlers"
 
 	"go.uber.org/fx"
 )

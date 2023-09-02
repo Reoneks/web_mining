@@ -1,14 +1,14 @@
 package tools
 
 import (
+	"slices"
 	"strings"
-	"test/structs"
 
-	"golang.org/x/exp/slices"
+	"dyploma/structs"
 )
 
 func PrepareCrawlerText(text string) string {
-	text = strings.TrimSpace(strings.Replace(text, "  ", " ", -1))
+	text = strings.TrimSpace(strings.ReplaceAll(text, "  ", " "))
 	if text == "\n" {
 		return ""
 	}
@@ -23,10 +23,8 @@ func CheckWisited(wisited []string, link string) bool {
 			if strings.HasPrefix(link, wisited) {
 				return true
 			}
-		} else {
-			if wisited == link {
-				return true
-			}
+		} else if wisited == link {
+			return true
 		}
 	}
 
@@ -49,24 +47,24 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hy
 	resp.Paragraphs += int64(len(strings.Split(hierarchy.Text, "\n")))
 	resp.Words += int64(len(strings.Split(strings.ReplaceAll(hierarchy.Text, "\n", " "), " ")))
 	resp.Symbols += int64(len(strings.ReplaceAll(hierarchy.Text, "\n", "")))
-	resp.StatusCodesCounter[hierarchy.StatusCode] = resp.StatusCodesCounter[hierarchy.StatusCode] + 1
+	resp.StatusCodesCounter[hierarchy.StatusCode]++
 
 	if hierarchy.Error != "" {
-		resp.Errors += 1
+		resp.Errors++
 	}
 
 	res.Link = hierarchy.Link
 	res.Attributes = make(map[string]string)
 
 	childrenLinks := make([]string, 0, len(hierarchy.Childrens))
-	for _, child := range hierarchy.Childrens {
+	for i, child := range hierarchy.Childrens {
 		childrenLinks = append(childrenLinks, child.Link)
-		processed := HierarchyProcess(resp, &child, hyperlinks)
+		processed := HierarchyProcess(resp, &hierarchy.Childrens[i], hyperlinks)
 		res.Children = append(res.Children, processed)
 
 		if links, ok := hyperlinks[child.Link]; ok {
 			var path string
-			for root := &child; root != nil; root = root.Parent {
+			for root := &hierarchy.Childrens[i]; root != nil; root = root.Parent {
 				path = root.Link + " | " + path
 			}
 
@@ -91,7 +89,7 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hy
 		}
 	}
 
-	return
+	return res
 }
 
 func SetParents(hierarchy *structs.Hierarchy) {
@@ -117,13 +115,12 @@ func uniqueHyperlinksProcessor(hierarchy *structs.Hierarchy) []string {
 	var result []string
 
 	result = slices.Clone(hierarchy.Hyperlinks)
-	for _, child := range hierarchy.Childrens {
-		links := uniqueHyperlinksProcessor(&child)
+	for i := range hierarchy.Childrens {
+		links := uniqueHyperlinksProcessor(&hierarchy.Childrens[i])
 		result = append(result, links...)
 	}
 
 	return Compact(result)
-
 }
 
 func PrepareLinks(links []string, baseURL string) []string {

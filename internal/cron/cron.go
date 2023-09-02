@@ -3,8 +3,9 @@ package cron
 import (
 	"context"
 	"fmt"
-	"test/structs"
 	"time"
+
+	"dyploma/structs"
 
 	"github.com/go-co-op/gocron"
 )
@@ -23,7 +24,7 @@ type Cron struct {
 	postgres Postgres
 }
 
-func (c *Cron) Start(ctx context.Context) error {
+func (c *Cron) Start(_ context.Context) error {
 	c.s = gocron.NewScheduler(time.UTC)
 	_, err := c.s.Every(1).Day().Do(c.UpdateSites)
 	if err != nil {
@@ -34,7 +35,7 @@ func (c *Cron) Start(ctx context.Context) error {
 	return nil
 }
 
-func (c *Cron) Stop(ctx context.Context) error {
+func (c *Cron) Stop(_ context.Context) error {
 	if c.s != nil {
 		c.s.Stop()
 		c.s.Clear()
