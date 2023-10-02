@@ -2,6 +2,7 @@ package tools
 
 import (
 	"slices"
+	"sort"
 	"strings"
 
 	"dyploma/structs"
@@ -45,9 +46,31 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hy
 	resp.ProcessedHyperlinks += int64(len(hierarchy.Childrens))
 	resp.InternalLinks += int64(len(hierarchy.InternalLinks))
 	resp.Paragraphs += int64(len(strings.Split(hierarchy.Text, "\n")))
-	resp.Words += int64(len(strings.Split(strings.ReplaceAll(hierarchy.Text, "\n", " "), " ")))
 	resp.Symbols += int64(len(strings.ReplaceAll(hierarchy.Text, "\n", "")))
 	resp.StatusCodesCounter[hierarchy.StatusCode]++
+
+	words := strings.Split(strings.ReplaceAll(hierarchy.Text, "\n", " "), " ")
+	resp.Words += int64(len(words))
+
+	wordsCounter := make(map[string]int64)
+	for _, word := range words {
+		wordsCounter[word]++
+	}
+
+	for k, v := range wordsCounter {
+		hierarchy.WordsCounter = append(hierarchy.WordsCounter, structs.WordCount{
+			Word:  k,
+			Count: v,
+		})
+	}
+
+	sort.Slice(hierarchy.WordsCounter, func(i, j int) bool {
+		return hierarchy.WordsCounter[i].Count < hierarchy.WordsCounter[j].Count
+	})
+
+	if len(hierarchy.WordsCounter) > 50 {
+		hierarchy.WordsCounter = hierarchy.WordsCounter[:50]
+	}
 
 	if hierarchy.Error != "" {
 		resp.Errors++

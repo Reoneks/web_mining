@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"sort"
 	"strings"
 
 	"dyploma/structs"
@@ -36,6 +37,28 @@ func (h *Handler) GetDetails(ctx echo.Context) error {
 	if err != nil {
 		log.Error().Str("function", "GetDetails").Err(err).Msg(ErrGetDetails.Error())
 		return ctx.JSON(http.StatusInternalServerError, newHTTPError(ErrGetDetails))
+	}
+
+	wordsCounter := make(map[string]int64)
+	for _, word := range strings.Split(strings.ReplaceAll(resp.Text, "\n", " "), " ") {
+		if len(word) > 3 {
+			wordsCounter[strings.ToLower(word)]++
+		}
+	}
+
+	for k, v := range wordsCounter {
+		resp.WordsCounter = append(resp.WordsCounter, structs.WordCount{
+			Word:  k,
+			Count: v,
+		})
+	}
+
+	sort.Slice(resp.WordsCounter, func(i, j int) bool {
+		return resp.WordsCounter[i].Count > resp.WordsCounter[j].Count
+	})
+
+	if len(resp.WordsCounter) > 50 {
+		resp.WordsCounter = resp.WordsCounter[:50]
 	}
 
 	return ctx.JSON(http.StatusOK, resp)

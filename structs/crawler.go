@@ -83,6 +83,7 @@ type CrawlerData struct {
 	Hyperlinks    pq.StringArray      `json:"hyperlinks" gorm:"type:text[]"`
 	InternalLinks pq.StringArray      `json:"internal_links" gorm:"type:text[]"`
 	Metadata      []map[string]string `json:"metadata" gorm:"serializer:json"`
+	WordsCounter  []WordCount         `json:"words_counter" gorm:"-"`
 }
 
 func (cd *CrawlerData) Merge(isHTMLBlock bool, toMerge ...CrawlerData) {
@@ -118,4 +119,9 @@ func (cd *CrawlerData) mergeText(text string, isHTMLBlock bool) {
 
 		cd.Text = strings.ToValidUTF8(cd.Text, "")
 	}
+}
+
+type WordCount struct {
+	Word  string
+	Count int64
 }
