@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"sync"
 
 	"github.com/joho/godotenv"
@@ -20,11 +19,6 @@ type AppConfig struct {
 type PostgresConfig struct {
 	DSN          string `envconfig:"DB_DSN" required:"true"`
 	MigrationURL string `envconfig:"DB_MIGRATION_URL" default:"file://migrations"`
-}
-
-func (cfg Config) String() string {
-	buf, _ := json.MarshalIndent(&cfg, "", "")
-	return string(buf)
 }
 
 var (
