@@ -1,12 +1,13 @@
 module dyploma
 
-go 1.21.0
+go 1.21.1
 
 require (
 	github.com/go-co-op/gocron v1.33.1
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/joho/godotenv v1.5.1
+	github.com/jtarchie/pagerank v0.0.0-20230922204854-1219901c120e
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/lib/pq v1.10.9
@@ -14,6 +15,7 @@ require (
 	github.com/likexian/whois-parser v1.24.9
 	github.com/rs/zerolog v1.30.0
 	github.com/sourcegraph/conc v0.3.0
+	github.com/spf13/cast v1.5.1
 	go.uber.org/fx v1.20.0
 	golang.org/x/net v0.14.0
 	gorm.io/driver/postgres v1.5.2

@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"dyploma/structs"
+
+	"github.com/jtarchie/pagerank"
+	"github.com/spf13/cast"
 )
 
 func PrepareCrawlerText(text string) string {
@@ -32,7 +35,12 @@ func CheckWisited(wisited []string, link string) bool {
 	return false
 }
 
-func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hyperlinks map[string][]structs.LinkHierarchy) (res structs.LinkHierarchy) {
+func HierarchyProcess(
+	resp *structs.SiteStruct,
+	hierarchy *structs.Hierarchy,
+	hyperlinks map[string][]structs.LinkHierarchy,
+	graph *pagerank.Graph[string],
+) (res structs.LinkHierarchy) {
 	if resp == nil || hierarchy == nil {
 		return structs.LinkHierarchy{}
 	}
@@ -82,7 +90,8 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hy
 	childrenLinks := make([]string, 0, len(hierarchy.Childrens))
 	for i, child := range hierarchy.Childrens {
 		childrenLinks = append(childrenLinks, child.Link)
-		processed := HierarchyProcess(resp, &hierarchy.Childrens[i], hyperlinks)
+		graph.Link(hierarchy.Link, child.Link, 1.0)
+		processed := HierarchyProcess(resp, &hierarchy.Childrens[i], hyperlinks, graph)
 		res.Children = append(res.Children, processed)
 
 		if links, ok := hyperlinks[child.Link]; ok {
@@ -113,6 +122,14 @@ func HierarchyProcess(resp *structs.SiteStruct, hierarchy *structs.Hierarchy, hy
 	}
 
 	return res
+}
+
+func SetPageRank(hierarchy *structs.LinkHierarchy, ranks map[string]float64) {
+	hierarchy.Attributes["PageRank"] = cast.ToString(ranks[hierarchy.Link])
+
+	for i := range hierarchy.Children {
+		SetPageRank(&hierarchy.Children[i], ranks)
+	}
 }
 
 func SetParents(hierarchy *structs.Hierarchy) {

@@ -9,6 +9,7 @@ import (
 	"dyploma/structs"
 	"dyploma/tools"
 
+	"github.com/jtarchie/pagerank"
 	"github.com/lib/pq"
 	whoisparser "github.com/likexian/whois-parser"
 	"github.com/rs/zerolog/log"
@@ -102,7 +103,16 @@ func (cb *Base) PageWalker(page string, exclude []string, onlyThisPage, forceCol
 	siteStruct.URL = page
 	siteStruct.ProcessedHyperlinks = 1
 	siteStruct.StatusCodesCounter = make(map[int]int64)
-	siteStruct.LinkHierarchy = tools.HierarchyProcess(&siteStruct, siteStruct.Hierarchy, make(map[string][]structs.LinkHierarchy))
+
+	graph := pagerank.NewGraph[string]()
+	siteStruct.LinkHierarchy = tools.HierarchyProcess(&siteStruct, siteStruct.Hierarchy, make(map[string][]structs.LinkHierarchy), graph)
+
+	ranks := make(map[string]float64)
+	graph.Rank(0.85, 0.000001, func(node string, rank float64) {
+		ranks[node] = rank
+	})
+
+	tools.SetPageRank(&siteStruct.LinkHierarchy, ranks)
 	siteStruct.UniqueHyperlinks = tools.UniqueHyperlinks(siteStruct.Hierarchy)
 	return siteStruct, nil
 }
