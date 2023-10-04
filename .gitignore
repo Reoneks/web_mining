@@ -27,3 +27,4 @@ test/data\ examples/path.txt
 .env
 *.env
 __debug_bin
+docs
