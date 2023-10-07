@@ -2,11 +2,11 @@ package tools
 
 import (
 	"slices"
-	"sort"
 	"strings"
 
 	"dyploma/structs"
 
+	textrank "github.com/DavidBelicza/TextRank/v2"
 	"github.com/jtarchie/pagerank"
 	"github.com/spf13/cast"
 )
@@ -54,30 +54,45 @@ func HierarchyProcess(
 	resp.ProcessedHyperlinks += int64(len(hierarchy.Childrens))
 	resp.InternalLinks += int64(len(hierarchy.InternalLinks))
 	resp.Paragraphs += int64(len(strings.Split(hierarchy.Text, "\n")))
+	resp.Words += int64(len(strings.Split(strings.ReplaceAll(hierarchy.Text, "\n", " "), " ")))
 	resp.Symbols += int64(len(strings.ReplaceAll(hierarchy.Text, "\n", "")))
 	resp.StatusCodesCounter[hierarchy.StatusCode]++
 
-	words := strings.Split(strings.ReplaceAll(hierarchy.Text, "\n", " "), " ")
-	resp.Words += int64(len(words))
+	tr := textrank.NewTextRank()
+	rule := textrank.NewDefaultRule()
+	language := textrank.NewDefaultLanguage()
+	algorithmDef := textrank.NewDefaultAlgorithm()
+	tr.Populate(hierarchy.Text, language, rule)
+	tr.Ranking(algorithmDef)
 
-	wordsCounter := make(map[string]int64)
-	for _, word := range words {
-		wordsCounter[word]++
-	}
-
-	for k, v := range wordsCounter {
-		hierarchy.WordsCounter = append(hierarchy.WordsCounter, structs.WordCount{
-			Word:  k,
-			Count: v,
+	phrases := textrank.FindPhrases(tr)
+	p := make([]structs.Phrase, 0, len(phrases))
+	for _, phrase := range phrases {
+		p = append(p, structs.Phrase{
+			Left:   phrase.Left,
+			Right:  phrase.Right,
+			Weight: phrase.Weight,
+			Qty:    phrase.Qty,
 		})
 	}
 
-	sort.Slice(hierarchy.WordsCounter, func(i, j int) bool {
-		return hierarchy.WordsCounter[i].Count < hierarchy.WordsCounter[j].Count
-	})
+	hierarchy.Phrases = p
 
-	if len(hierarchy.WordsCounter) > 50 {
-		hierarchy.WordsCounter = hierarchy.WordsCounter[:50]
+	words := textrank.FindSingleWords(tr)
+	w := make([]structs.Word, 0, len(words))
+	for _, word := range words {
+		w = append(w, structs.Word{
+			Word:   word.Word,
+			Weight: word.Weight,
+			Qty:    word.Qty,
+		})
+	}
+
+	hierarchy.Words = w
+
+	sentences := textrank.FindSentencesByRelationWeight(tr, 20)
+	for _, sentence := range sentences {
+		hierarchy.Sentences = append(hierarchy.Sentences, sentence.Value)
 	}
 
 	if hierarchy.Error != "" {

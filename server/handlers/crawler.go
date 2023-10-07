@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"net/http"
-	"sort"
 	"strings"
 
 	"dyploma/structs"
 
+	textrank "github.com/DavidBelicza/TextRank/v2"
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 )
@@ -39,26 +39,41 @@ func (h *Handler) GetDetails(ctx echo.Context) error {
 		return ctx.JSON(http.StatusInternalServerError, newHTTPError(ErrGetDetails))
 	}
 
-	wordsCounter := make(map[string]int64)
-	for _, word := range strings.Split(strings.ReplaceAll(resp.Text, "\n", " "), " ") {
-		if len(word) > 3 {
-			wordsCounter[strings.ToLower(word)]++
-		}
-	}
+	tr := textrank.NewTextRank()
+	rule := textrank.NewDefaultRule()
+	language := textrank.NewDefaultLanguage()
+	algorithmDef := textrank.NewDefaultAlgorithm()
+	tr.Populate(resp.Text, language, rule)
+	tr.Ranking(algorithmDef)
 
-	for k, v := range wordsCounter {
-		resp.WordsCounter = append(resp.WordsCounter, structs.WordCount{
-			Word:  k,
-			Count: v,
+	phrases := textrank.FindPhrases(tr)
+	p := make([]structs.Phrase, 0, len(phrases))
+	for _, phrase := range phrases {
+		p = append(p, structs.Phrase{
+			Left:   phrase.Left,
+			Right:  phrase.Right,
+			Weight: phrase.Weight,
+			Qty:    phrase.Qty,
 		})
 	}
 
-	sort.Slice(resp.WordsCounter, func(i, j int) bool {
-		return resp.WordsCounter[i].Count > resp.WordsCounter[j].Count
-	})
+	resp.Phrases = p
 
-	if len(resp.WordsCounter) > 50 {
-		resp.WordsCounter = resp.WordsCounter[:50]
+	words := textrank.FindSingleWords(tr)
+	w := make([]structs.Word, 0, len(words))
+	for _, word := range words {
+		w = append(w, structs.Word{
+			Word:   word.Word,
+			Weight: word.Weight,
+			Qty:    word.Qty,
+		})
+	}
+
+	resp.Words = w
+
+	sentences := textrank.FindSentencesByRelationWeight(tr, 20)
+	for _, sentence := range sentences {
+		resp.Sentences = append(resp.Sentences, sentence.Value)
 	}
 
 	return ctx.JSON(http.StatusOK, resp)

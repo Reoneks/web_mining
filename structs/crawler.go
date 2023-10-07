@@ -69,6 +69,19 @@ func (Hierarchy) TableName() string {
 	return "link_data"
 }
 
+type Phrase struct {
+	Left   string  `json:"left"`
+	Right  string  `json:"right"`
+	Weight float32 `json:"weight"`
+	Qty    int     `json:"qty"`
+}
+
+type Word struct {
+	Word   string  `json:"word"`
+	Weight float32 `json:"weight"`
+	Qty    int     `json:"qty"`
+}
+
 type CrawlerData struct {
 	Link          string              `json:"link" gorm:"primary_key"`
 	StatusCode    int                 `json:"status_code"`
@@ -83,7 +96,9 @@ type CrawlerData struct {
 	Hyperlinks    pq.StringArray      `json:"hyperlinks" gorm:"type:text[]"`
 	InternalLinks pq.StringArray      `json:"internal_links" gorm:"type:text[]"`
 	Metadata      []map[string]string `json:"metadata" gorm:"serializer:json"`
-	WordsCounter  []WordCount         `json:"words_counter" gorm:"-"`
+	Phrases       []Phrase            `json:"phrases" gorm:"-"`
+	Words         []Word              `json:"words" gorm:"-"`
+	Sentences     []string            `json:"sentences" gorm:"-"`
 }
 
 func (cd *CrawlerData) Merge(isHTMLBlock bool, toMerge ...CrawlerData) {

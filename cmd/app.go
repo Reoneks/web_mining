@@ -42,8 +42,8 @@ func annotationDupl[T any](v *T) *T {
 	return v
 }
 
-func prepareHooks(server *server.HTTPServer, postgres *postgres.Postgres, cron *cron.Cron, lc fx.Lifecycle) {
-	lc.Append(fx.Hook{OnStart: cron.Start, OnStop: cron.Stop})
+func prepareHooks(server *server.HTTPServer, postgres *postgres.Postgres, _ *cron.Cron, lc fx.Lifecycle) {
+	// lc.Append(fx.Hook{OnStart: cron.Start, OnStop: cron.Stop})
 	lc.Append(fx.Hook{OnStop: postgres.Stop})
 	lc.Append(fx.Hook{OnStart: server.Start, OnStop: server.Stop})
 }
