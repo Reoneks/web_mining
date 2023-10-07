@@ -123,6 +123,7 @@ func HierarchyProcess(
 	}
 
 	for _, link := range hierarchy.Hyperlinks {
+		graph.Link(hierarchy.Link, link, 1.0)
 		if strings.Contains(link, resp.BaseURL) && !slices.Contains(childrenLinks, link) {
 			linkHierarchy := structs.LinkHierarchy{Link: link, Attributes: make(map[string]string)}
 
@@ -134,6 +135,26 @@ func HierarchyProcess(
 
 			res.Children = append(res.Children, linkHierarchy)
 		}
+	}
+
+	for _, link := range hierarchy.Audio {
+		graph.Link(hierarchy.Link, link, 1.0)
+	}
+
+	for _, link := range hierarchy.Video {
+		graph.Link(hierarchy.Link, link, 1.0)
+	}
+
+	for _, link := range hierarchy.Files {
+		graph.Link(hierarchy.Link, link, 1.0)
+	}
+
+	for _, link := range hierarchy.Fonts {
+		graph.Link(hierarchy.Link, link, 1.0)
+	}
+
+	for _, link := range hierarchy.Images {
+		graph.Link(hierarchy.Link, link, 1.0)
 	}
 
 	return res
