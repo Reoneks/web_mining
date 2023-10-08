@@ -1,6 +1,6 @@
 module dyploma
 
-go 1.21.1
+go 1.21.2
 
 require (
 	github.com/go-co-op/gocron v1.33.1

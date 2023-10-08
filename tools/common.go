@@ -105,7 +105,6 @@ func HierarchyProcess(
 	childrenLinks := make([]string, 0, len(hierarchy.Childrens))
 	for i, child := range hierarchy.Childrens {
 		childrenLinks = append(childrenLinks, child.Link)
-		graph.Link(hierarchy.Link, child.Link, 1.0)
 		processed := HierarchyProcess(resp, &hierarchy.Childrens[i], hyperlinks, graph)
 		res.Children = append(res.Children, processed)
 
