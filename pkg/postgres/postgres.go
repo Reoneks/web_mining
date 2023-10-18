@@ -148,3 +148,7 @@ func migrations(dsn, migrationsURL string) error {
 
 	return nil
 }
+
+func preloadHierarchy(d *gorm.DB) *gorm.DB {
+	return d.Preload("Childrens", preloadHierarchy)
+}
